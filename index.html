@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 
 <head>
@@ -1546,9 +1546,8 @@
     <footer class="bg-white border-t border-slate-200 py-8 mt-auto">
         <div class="max-w-[1400px] mx-auto flex flex-col items-center justify-center gap-4">
             <div class="flex items-center gap-4">
-                <!-- AR Logo replaced with placeholder for the web environment -->
-                <img src="https://ui-avatars.com/api/?name=AR&background=0D8ABC&color=fff&size=128" alt="AR Logo"
-                    class="h-14 w-auto rounded-lg object-contain shadow-md border border-slate-100">
+                <img src="ar_logo1.png" alt="AR Logo"
+                    class="h-12 sm:h-14 md:h-16 w-auto object-contain">
 
                 <!-- DPL 3.0 Text (Two lines) -->
                 <div class="text-left flex flex-col justify-center">
@@ -1594,8 +1593,80 @@
             loggedInPlayer: null,
             auctionIndex: 0,
             chartInitialized: false,
-            isAdmin: false // Tracks if user has unlocked the admin panel
+            isAdmin: false, // Tracks if user has unlocked the admin panel
+            liveScore: {
+                team1: 'AP11',
+                score1: '112/4 (8.2 ov)',
+                team2: 'Cotton11',
+                score2: 'Yet to bat',
+                batter: 'Rahul D. *',
+                bowler: 'Jasprit'
+            }
         };
+
+        const LIVE_SCORE_STORAGE_KEY = 'dpl_live_score';
+
+        function loadLiveScoreState() {
+            try {
+                const saved = localStorage.getItem(LIVE_SCORE_STORAGE_KEY);
+                if (!saved) return;
+                const parsed = JSON.parse(saved);
+                state.liveScore = { ...state.liveScore, ...parsed };
+            } catch (error) {
+                console.error('Failed to load live score state:', error);
+            }
+        }
+
+        function saveLiveScoreState() {
+            localStorage.setItem(LIVE_SCORE_STORAGE_KEY, JSON.stringify(state.liveScore));
+        }
+
+        function applyLiveScoreState() {
+            const liveTeam1 = document.getElementById('live-team-1');
+            const liveScore1 = document.getElementById('live-score-1');
+            const liveOvers1 = document.getElementById('live-overs-1');
+            const liveTeam2 = document.getElementById('live-team-2');
+            const liveScore2 = document.getElementById('live-score-2');
+            const liveBatter = document.getElementById('live-batter-1');
+            const liveBowler = document.getElementById('live-bowler');
+            const adminTeam1 = document.getElementById('ls-team1');
+            const adminScore1 = document.getElementById('ls-score1');
+            const adminTeam2 = document.getElementById('ls-team2');
+            const adminScore2 = document.getElementById('ls-score2');
+            const adminBatter = document.getElementById('ls-batter1');
+            const adminBowler = document.getElementById('ls-bowler');
+            const formatScoreMarkup = (scoreText) => {
+                const match = scoreText.match(/(\d+)\/?(\d*)/);
+                if (!match) return scoreText || '0/0';
+                const runs = match[1];
+                const wkts = match[2] || '0';
+                return `${runs}<span class="text-3xl md:text-4xl text-emerald-200">/${wkts}</span>`;
+            };
+
+            if (liveTeam1) liveTeam1.innerText = state.liveScore.team1;
+            if (liveTeam2) liveTeam2.innerText = state.liveScore.team2;
+            if (liveScore1) liveScore1.innerHTML = formatScoreMarkup(state.liveScore.score1);
+            if (liveScore2) {
+                if (state.liveScore.score2.match(/^\d+\/?\d*/)) {
+                    liveScore2.innerHTML = formatScoreMarkup(state.liveScore.score2);
+                } else {
+                    liveScore2.innerText = state.liveScore.score2 || 'Yet to bat';
+                }
+            }
+            if (liveOvers1) {
+                const ovMatch = state.liveScore.score1.match(/\(([\d.]+)\s*ov\)/);
+                liveOvers1.innerText = ovMatch ? `Overs: ${ovMatch[1]} / 10` : 'Overs: -- / 10';
+            }
+            if (liveBatter) liveBatter.innerText = state.liveScore.batter || '---';
+            if (liveBowler) liveBowler.innerText = state.liveScore.bowler || '---';
+
+            if (adminTeam1) adminTeam1.value = state.liveScore.team1;
+            if (adminScore1) adminScore1.value = state.liveScore.score1;
+            if (adminTeam2) adminTeam2.value = state.liveScore.team2;
+            if (adminScore2) adminScore2.value = state.liveScore.score2;
+            if (adminBatter) adminBatter.value = state.liveScore.batter;
+            if (adminBowler) adminBowler.value = state.liveScore.bowler;
+        }
 
         // --- MOBILE MENU LOGIC ---
         let mobileMenuOpen = false;
@@ -1636,6 +1707,7 @@
             // Special initializations based on view
             if (viewId === 'teams') { syncDataFromGoogleSheets(); renderTeams(); }
             if (viewId === 'auction') { syncDataFromGoogleSheets(); renderAuctionPlayer(); renderAuctionButtons(); }
+            if (viewId === 'live') applyLiveScoreState();
             if (viewId === 'stats' && !state.chartInitialized) renderChart();
             if (viewId === 'adminpanel') { syncDataFromGoogleSheets().then(() => renderAdminPanel()); }
 
@@ -1947,8 +2019,16 @@
         }
 
         // Fire immediately on script parse + re-poll every 30 seconds
+        loadLiveScoreState();
+        applyLiveScoreState();
         syncDataFromGoogleSheets();
         setInterval(syncDataFromGoogleSheets, 30000);
+        window.addEventListener('storage', (event) => {
+            if (event.key === LIVE_SCORE_STORAGE_KEY) {
+                loadLiveScoreState();
+                applyLiveScoreState();
+            }
+        });
 
         function handleVillageChange(selectElement) {
             if (selectElement.value === 'Other') {
@@ -2142,43 +2222,16 @@
             const batter = document.getElementById('ls-batter1').value.trim();
             const bowler = document.getElementById('ls-bowler').value.trim();
 
-            // Push to Live Score view
-            const lsEl1 = document.getElementById('live-score-1');
-            const lsEl2 = document.getElementById('live-score-2');
-            const ovEl1 = document.getElementById('live-overs-1');
-            const liveTeam1 = document.getElementById('live-team-1');
-            const liveTeam2 = document.getElementById('live-team-2');
-            const liveBatter = document.getElementById('live-batter-1');
-            const liveBowler = document.getElementById('live-bowler');
-            const formatScoreMarkup = (scoreText) => {
-                const match = scoreText.match(/(\d+)\/?(\d*)/);
-                if (!match) return scoreText || '0/0';
-                const runs = match[1];
-                const wkts = match[2] || '0';
-                return `${runs}<span class="text-3xl md:text-4xl text-emerald-200">/${wkts}</span>`;
+            state.liveScore = {
+                team1: t1 || 'AP11',
+                score1: s1 || '0/0',
+                team2: t2 || 'Cotton11',
+                score2: s2 || 'Yet to bat',
+                batter: batter || '---',
+                bowler: bowler || '---'
             };
-
-            if (lsEl1) {
-                lsEl1.innerHTML = formatScoreMarkup(s1);
-            }
-            if (lsEl2) {
-                if (s2.match(/^\d+\/?\d*/)) {
-                    lsEl2.innerHTML = formatScoreMarkup(s2);
-                } else {
-                    lsEl2.innerText = s2 || 'Yet to bat';
-                }
-            }
-            if (ovEl1 && s1.includes('ov')) {
-                const ovMatch = s1.match(/\(([\d.]+)\s*ov\)/);
-                if (ovMatch) ovEl1.innerText = `Overs: ${ovMatch[1]} / 10`;
-            }
-            // Update team names in Live view
-            if (liveTeam1) liveTeam1.innerText = t1;
-            if (liveTeam2) liveTeam2.innerText = t2;
-
-            // Update batter / bowler display
-            if (liveBatter) liveBatter.innerText = batter || '---';
-            if (liveBowler) liveBowler.innerText = bowler || '---';
+            saveLiveScoreState();
+            applyLiveScoreState();
 
             showModal('⚡ Score Updated!', `<div class='text-center py-4'><span class='text-5xl mb-4 block'>📟</span><h3 class='font-bold text-emerald-600 text-xl mb-1'>${t1} vs ${t2}</h3><p class='text-slate-600'>${t1}: ${s1} | ${t2}: ${s2}</p></div>`);
         }
@@ -2294,11 +2347,15 @@
         }
 
         // --- 6. Live Score Simulation ---
-        let runs = 112;
         setInterval(() => {
             if (document.getElementById('view-live').classList.contains('active-view')) {
-                runs += Math.floor(Math.random() * 3); // random 0,1,2 runs
-                document.getElementById('live-score-1').innerHTML = `${runs}<span class="text-3xl md:text-4xl text-emerald-200">/4</span>`;
+                const match = state.liveScore.score1.match(/(\d+)\/?(\d*)/);
+                const currentRuns = match ? Number(match[1]) : 0;
+                const wickets = match && match[2] ? match[2] : '0';
+                const nextRuns = currentRuns + Math.floor(Math.random() * 3);
+                state.liveScore.score1 = `${nextRuns}/${wickets}`;
+                saveLiveScoreState();
+                applyLiveScoreState();
             }
         }, 5000);
 
