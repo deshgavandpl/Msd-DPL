@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPL Central | Professional Draft & League Operations</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            /* slate-50 */
+            color: #1e293b;
+            /* slate-800 */
+            overflow-x: hidden;
+            overflow-y: scroll;
+        }
+
+        /* Clean UI Cards */
+        .clean-card {
+            background-color: #ffffff;
+            border-radius: 1.25rem;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .clean-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+            border-color: #e2e8f0;
+        }
+
+        .team-card {
+            min-height: 320px;
+        }
+
+        .team-photo-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .team-photo-frame {
+            width: min(100%, 210px);
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .team-photo {
+            width: auto;
+            max-width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center bottom;
+            display: block;
+            filter: drop-shadow(0 14px 24px rgba(15, 23, 42, 0.18));
+            transition: transform 0.35s ease, filter 0.35s ease;
+        }
+
+        .clean-card-hover:hover .team-photo {
+            transform: translateY(-2px) scale(1.015);
+            filter: drop-shadow(0 18px 30px rgba(15, 23, 42, 0.22));
+        }
+
+        .team-photo--1 {
+            transform: translateY(4px);
+        }
+
+        .team-photo--2 {
+            transform: translateX(4px) translateY(1px);
+        }
+
+        .team-photo--3 {
+            transform: translateY(3px);
+        }
+
+        .team-photo--4 {
+            transform: translateX(-3px) translateY(6px);
+        }
+
+        .team-photo--5 {
+            transform: translateX(2px) translateY(2px);
+        }
+
+        @media (max-width: 639px) {
+            .team-photo-wrap {
+                justify-content: flex-end;
+            }
+
+            .team-photo-frame {
+                justify-content: flex-end;
+            }
+
+            .team-photo {
+                transform: translate(20%, -20%);
+            }
+
+            .team-photo--1,
+            .team-photo--2,
+            .team-photo--3,
+            .team-photo--4,
+            .team-photo--5 {
+                transform: translate(20%, -20%);
+            }
+
+            .clean-card-hover:hover .team-photo,
+            .clean-card-hover:hover .team-photo--1,
+            .clean-card-hover:hover .team-photo--2,
+            .clean-card-hover:hover .team-photo--3,
+            .clean-card-hover:hover .team-photo--4,
+            .clean-card-hover:hover .team-photo--5 {
+                transform: translate(20%, -22%) scale(1.015);
+            }
+        }
+
+        .clean-card-hover:hover .team-photo--1,
+        .clean-card-hover:hover .team-photo--2,
+        .clean-card-hover:hover .team-photo--3,
+        .clean-card-hover:hover .team-photo--4,
+        .clean-card-hover:hover .team-photo--5 {
+            transform: translateY(-2px) scale(1.015);
+        }
+
+        @media (min-width: 640px) {
+            .team-card {
+                min-height: 280px;
+            }
+
+            .team-photo-wrap {
+                width: auto;
+                flex: 0 0 220px;
+                justify-content: flex-end;
+            }
+
+            .team-photo-frame {
+                width: 220px;
+                height: 250px;
+            }
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: #2563eb;
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: #475569;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            border: 1px solid #cbd5e1;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f8fafc;
+            color: #1e293b;
+            border-color: #94a3b8;
+        }
+
+        /* Chart Containers */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        /* View Manager */
+        .app-view {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .app-view.active-view {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Utilities */
+        .hide {
+            display: none !important;
+        }
+
+        /* --- GEN-Z "CENTRAL BADGE" NAVIGATION STYLES --- */
+        .nav-link,
+        .mobile-nav-link,
+        .tab-btn {
+            position: relative;
+            color: #64748b;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: all 0.2s ease;
+            transform: skewX(-10deg);
+            background-color: transparent;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            /* rounded-sm like the Central badge */
+            cursor: pointer;
+        }
+
+        .nav-link>span,
+        .mobile-nav-link>span,
+        .tab-btn>span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transform: skewX(10deg);
+            /* Un-skew the text content */
+        }
+
+        /* Desktop Nav */
+        .nav-link {
+            padding: 0.35rem 1rem;
+            font-size: 0.7rem;
+        }
+
+        .nav-link:hover:not(.active) {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            border-color: #e2e8f0;
+        }
+
+        /* Mobile Nav */
+        .mobile-nav-link {
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            width: 80%;
+            border-radius: 0.5rem;
+        }
+
+        .mobile-nav-link:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #00e5ff;
+        }
+
+        /* Inner Tabs */
+        .tab-btn {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* The "Central" Badge Active State with Gen-Z Cyber Shadow */
+        .nav-link.active,
+        .mobile-nav-link.active,
+        .tab-btn.active {
+            background-image: linear-gradient(to right, #2563eb, #1e40af);
+            /* matches from-blue-600 to-blue-800 */
+            color: #ffffff !important;
+            border-color: #2563eb;
+            /* Brutalist cyan shadow for that electric Gen-Z feel */
+            box-shadow: 3px 3px 0px #00e5ff;
+        }
+
+        /* Inputs */
+        .clean-input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            background-color: #ffffff;
+            transition: all 0.2s;
+        }
+
+        .clean-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Live Indicator */
+        .live-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Hero Special Effects (Stadium Background & Floating) */
+        /* ... in the <style> block ... */
+        .hero-bg {
+            background: url('image_0.jpg') center/cover no-repeat;
+            /* Since we can't use live URLs, you would replace this with your local path or a valid URL in a real environment. */
+        }
+
+        /* ... */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(10, 25, 47, 0.95) 0%, rgba(10, 25, 47, 0.7) 100%);
+        }
+
+        .hero-floating {
+            animation: floating 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+        }
+
+        .hero-glow-box {
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        @keyframes floating {
+            0% {
+                transform: translateY(0px) scale(1);
+            }
+
+            50% {
+                transform: translateY(-15px) scale(1.02);
+            }
+
+            100% {
+                transform: translateY(0px) scale(1);
+            }
+        }
+
+        /* --- NEW LIGHTNING SPEED / POSITIVE ENERGY UI STYLES --- */
+        .energy-grid {
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(0, 229, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 229, 255, 0.08) 1px, transparent 1px);
+        }
+
+        .bg-animated-gradient {
+            background-size: 200% 200%;
+            animation: fastgradient 3s ease infinite;
+        }
+
+        @keyframes fastgradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .text-stroke-electric {
+            -webkit-text-stroke: 1.5px #00e5ff;
+            color: transparent;
+        }
+
+        .lightning-hover:hover {
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(0, 229, 255, 0.2);
+            border-color: #00e5ff;
+            transform: translateY(-4px) scale(1.02);
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-blue-100 selection:text-blue-900 flex flex-col min-h-screen">
+
+    <!-- Top Navbar (SPA Navigation) -->
+    <nav
+        class="sticky top-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 z-50 px-4 md:px-6 py-3 shadow-sm">
+        <div class="max-w-[1400px] mx-auto flex justify-between items-center">
+
+            <!-- NEW GEN-Z STYLISH LOGO -->
+            <div class="relative cursor-pointer flex items-center gap-3 group" onclick="navigateTo('home')">
+                <!-- Glowing Square 'D' -->
+                <div
+                    class="relative w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-all duration-300">
+                    <!-- Neon blur background -->
+                    <div
+                        class="absolute -inset-0.5 bg-gradient-to-r from-[#D4AF37] to-blue-600 opacity-60 blur group-hover:opacity-100 transition-opacity duration-300">
+                    </div>
+                    <!-- Solid edge square -->
+                    <div
+                        class="relative w-full h-full bg-[#0a192f] border border-[#D4AF37]/50 flex items-center justify-center shadow-inner">
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-br from-[#D4AF37] to-yellow-200 font-black italic text-xl">D</span>
+                    </div>
+                </div>
+                <!-- Skewed Stylish Text -->
+                <div class="flex items-center gap-1.5 transform -skew-x-6">
+                    <span
+                        class="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 uppercase tracking-tighter leading-none">DPL</span>
+                    <span
+                        class="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-[0.65rem] font-bold px-2 py-0.5 uppercase tracking-widest leading-none shadow-sm shadow-blue-500/30 rounded-sm">Central</span>
+                </div>
+            </div>
+
+            <!-- Desktop Nav (Central Badge Style Container) -->
+            <div class="hidden lg:flex items-center gap-1.5">
+                <button onclick="navigateTo('home')" class="nav-link active"
+                    data-target="home"><span>Home</span></button>
+                <button onclick="navigateTo('league')" class="nav-link"
+                    data-target="league"><span>League</span></button>
+                <button onclick="navigateTo('teams')" class="nav-link" data-target="teams"><span>Teams</span></button>
+                <button onclick="navigateTo('auction')" class="nav-link"
+                    data-target="auction"><span>Auction</span></button>
+                <button onclick="navigateTo('live')" class="nav-link" data-target="live"><span><span
+                            class="live-dot w-2 h-2"></span> Live</span></button>
+                <button onclick="navigateTo('stats')" class="nav-link" data-target="stats"><span>Stats</span></button>
+                <button onclick="navigateTo('media')" class="nav-link" data-target="media"><span>Media</span></button>
+                <button onclick="navigateTo('hub')" class="nav-link" data-target="hub"><span>Hub</span></button>
+            </div>
+
+            <button onclick="navigateTo('admin')"
+                class="hidden md:flex btn-secondary px-5 py-2 text-xs text-slate-600 rounded-lg font-black uppercase tracking-widest hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-300 transform -skew-x-6"><span
+                    class="mr-1 inline-block transform skew-x-6">🔒 Admin</span></button>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button onclick="toggleMobileMenu()"
+                class="lg:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                    </path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MOBILE NAVIGATION OVERLAY (Gen-Z Style) -->
+    <div id="mobile-nav"
+        class="fixed inset-0 bg-[#0a192f]/98 backdrop-blur-xl z-[100] transform translate-x-full transition-transform duration-300 flex flex-col items-center justify-center lg:hidden">
+        <!-- Close Button -->
+        <button onclick="toggleMobileMenu()"
+            class="absolute top-6 right-6 text-white/70 hover:text-[#00e5ff] p-2 transition-colors">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        <!-- Mobile Links (Central Badge Style) -->
+        <div class="flex flex-col gap-4 text-center w-full px-6 overflow-y-auto max-h-screen py-20 items-center">
+            <button onclick="navigateTo('home')" class="mobile-nav-link active"
+                data-target="home"><span>Home</span></button>
+            <button onclick="navigateTo('league')" class="mobile-nav-link"
+                data-target="league"><span>League</span></button>
+            <button onclick="navigateTo('teams')" class="mobile-nav-link"
+                data-target="teams"><span>Teams</span></button>
+            <button onclick="navigateTo('auction')" class="mobile-nav-link"
+                data-target="auction"><span>Auction</span></button>
+            <button onclick="navigateTo('live')" class="mobile-nav-link" data-target="live"><span><span
+                        class="live-dot w-3 h-3"></span> Live Score</span></button>
+            <button onclick="navigateTo('stats')" class="mobile-nav-link"
+                data-target="stats"><span>Stats</span></button>
+            <button onclick="navigateTo('media')" class="mobile-nav-link"
+                data-target="media"><span>Media</span></button>
+            <button onclick="navigateTo('hub')" class="mobile-nav-link" data-target="hub"><span>Player
+                    Hub</span></button>
+
+            <div class="h-px w-1/2 mx-auto bg-slate-800 my-4"></div>
+
+            <button onclick="navigateTo('admin')"
+                class="w-4/5 mx-auto py-3.5 rounded-lg bg-red-600/10 border border-red-500/30 text-xl font-black text-red-500 uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform -skew-x-6">
+                <span class="inline-block transform skew-x-6">🔒 Admin Access</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-grow w-full max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8">
+
+        <!-- ========================================== -->
+        <!-- VIEW: HOME                                 -->
+        <!-- ========================================== -->
+        <div id="view-home" class="app-view active-view">
+            <!-- ELECTRIC HERO SECTION (Lightning Speed Gen-Z UI) -->
+            <div
+                class="clean-card hero-bg bg-slate-950 mb-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)] min-h-[80vh] lg:min-h-[calc(100vh-100px)] !border-0 rounded-3xl group">
+
+                <!-- Lightning Grid Background -->
+                <div
+                    class="absolute inset-0 energy-grid opacity-30 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none z-0 transform scale-110">
+                </div>
+
+                <!-- Neon Orbs -->
+                <div
+                    class="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none z-0">
+                </div>
+                <div
+                    class="absolute bottom-0 right-1/2 w-[500px] h-[500px] bg-[#00e5ff]/5 rounded-full blur-[120px] pointer-events-none z-0">
+                </div>
+
+                <div
+                    class="hero-overlay pointer-events-none z-0 !bg-gradient-to-r !from-slate-950/90 !via-slate-900/50 !to-slate-900/10">
+                </div>
+                <!-- Text & Buttons -->
+                <div class="relative z-10 max-w-xl w-full p-6 sm:p-8 md:p-12 lg:p-16">
+
+                    <!-- Energy Badge -->
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-[#00e5ff] font-black text-[10px] sm:text-xs tracking-[0.2em] uppercase mb-6 sm:mb-8 transform -skew-x-12 shadow-[0_0_15px_rgba(0,229,255,0.2)]">
+                        <span class="animate-pulse">⚡</span> High-Voltage T10 Cricket
+                    </div>
+
+                    <!-- Skewed Dynamic Heading - Resized for mobile -->
+                    <h1
+                        class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-4 sm:mb-6 leading-[0.9] tracking-tighter uppercase transform -skew-x-6">
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 drop-shadow-lg">Deshgavhan</span>
+                        <br>
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-[#00e5ff] via-blue-500 to-purple-600 bg-animated-gradient drop-shadow-[0_0_20px_rgba(0,229,255,0.4)] block mt-2 sm:mt-3">Premier</span>
+                        <span class="text-stroke-electric block mt-1 sm:mt-2 tracking-wider">League</span>
+                    </h1>
+
+                    <!-- Accent Line Paragraph -->
+                    <p
+                        class="text-slate-300 text-base sm:text-lg md:text-xl mb-8 sm:mb-10 font-medium leading-relaxed border-l-4 border-[#00e5ff] pl-4 sm:pl-5 bg-gradient-to-r from-slate-900/50 to-transparent py-2">
+                        Cricket's ultimate battleground. Feel the surge. Witness the lightning pace, the unmatched
+                        passion, and the glory.
+                    </p>
+
+                    <!-- Fast/Skewed Buttons -->
+                    <div class="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-5">
+                        <button onclick="navigateTo('hub')"
+                            class="w-full sm:w-auto px-6 sm:px-8 py-4 rounded-xl bg-gradient-to-r from-[#00e5ff] to-blue-600 text-slate-950 font-black italic uppercase tracking-wider hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:shadow-[0_0_40px_rgba(0,229,255,0.6)] transform hover:-translate-y-1 hover:scale-105 skew-x-[0deg] sm:skew-x-[-8deg]">
+                            <span class="block transform sm:skew-x-[8deg]">⚡ Enter the Draft</span>
+                        </button>
+                        <button onclick="navigateTo('teams')"
+                            class="w-full sm:w-auto px-6 sm:px-8 py-4 rounded-xl bg-transparent border-2 border-[#00e5ff]/50 text-[#00e5ff] font-black italic uppercase tracking-wider hover:bg-[#00e5ff]/10 hover:border-[#00e5ff] transition-all transform hover:-translate-y-1 hover:scale-105 skew-x-[0deg] sm:skew-x-[-8deg] shadow-[inset_0_0_20px_rgba(0,229,255,0)] hover:shadow-[inset_0_0_20px_rgba(0,229,255,0.2)]">
+                            <span class="block transform sm:skew-x-[8deg]">View Franchises</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Glowing Map Image (Floating) - UNTOUCHED AS REQUESTED -->
+                <div
+                    class="relative z-10 w-full max-w-[280px] sm:max-w-sm lg:max-w-md shrink-0 p-4 sm:p-8 md:p-12 lg:p-16 mx-auto md:mx-0">
+                    <!-- Glow & Float Wrapper -->
+                    <div
+                        class="hero-floating hero-glow-box relative rounded-[2rem] p-1 bg-gradient-to-br from-[#D4AF37]/60 via-transparent to-[#D4AF37]/20 transition-shadow duration-500">
+                        <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                            alt="Deshgavhan Map"
+                            class="w-full h-auto rounded-[1.8rem] border-4 border-[#0a192f] object-cover bg-[#0a192f]">
+                        <!-- Inner shadow overlay -->
+                        <div
+                            class="absolute inset-0 rounded-[2rem] shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] pointer-events-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced High-Energy Quick Highlights -->
+            <div class="grid lg:grid-cols-3 gap-8 mb-8">
+                <!-- QUICK HIGHLIGHTS -->
+                <div
+                    class="lg:col-span-2 clean-card p-4 sm:p-6 bg-slate-900 border-slate-800 shadow-xl relative overflow-hidden group">
+                    <!-- Subtle bg grid for cards -->
+                    <div class="absolute inset-0 energy-grid opacity-20 pointer-events-none"></div>
+                    <h2
+                        class="text-lg font-black italic text-white mb-5 border-b border-slate-700 pb-2 uppercase tracking-wide flex items-center gap-2">
+                        <span class="text-[#00e5ff]">⚡</span> Pulse Check</h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+                        <div
+                            class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center lightning-hover transition-all">
+                            <div class="text-3xl mb-2 drop-shadow-md">👑</div>
+                            <h3 class="font-bold text-amber-400 text-xs tracking-widest uppercase">Top Player (AI)</h3>
+                            <p class="text-xl font-black italic text-white mt-1 transform -skew-x-6">Rahul D.</p>
+                        </div>
+                        <div
+                            class="bg-[#0a192f] rounded-xl p-4 border border-[#00e5ff]/30 text-center text-white relative lightning-hover transition-all shadow-[inset_0_0_20px_rgba(0,229,255,0.05)]">
+                            <span class="absolute top-3 right-3 live-dot"></span>
+                            <div
+                                class="text-[10px] text-[#00e5ff] font-black uppercase tracking-widest mb-1 bg-[#00e5ff]/10 inline-block px-2 py-0.5 rounded-full">
+                                Live Match</div>
+                            <h3 class="font-bold text-sm text-slate-300 mt-1">AP11 vs Cotton11</h3>
+                            <p class="text-3xl font-black text-white mt-1 transform -skew-x-6 tracking-tighter">112<span
+                                    class="text-xl text-[#00e5ff]">/4</span></p>
+                            <span class="text-xs font-medium text-slate-400 block mt-1">(8.2 ov)</span>
+                        </div>
+                        <div
+                            class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center lightning-hover transition-all">
+                            <div class="text-3xl mb-2 drop-shadow-md">🛡️</div>
+                            <h3 class="font-bold text-blue-400 text-xs tracking-widest uppercase">Top Team</h3>
+                            <p class="text-xl font-black italic text-white mt-1 transform -skew-x-6">AP11</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SHORTCUT CARDS -->
+                <div class="clean-card p-6 flex flex-col justify-between border-slate-200">
+                    <h2
+                        class="text-lg font-black italic text-slate-900 mb-4 border-b border-slate-100 pb-2 uppercase tracking-wide">
+                        Quick Jump</h2>
+                    <div class="space-y-3">
+                        <button onclick="navigateTo('auction')"
+                            class="w-full text-left p-3.5 rounded-xl hover:bg-[#00e5ff]/5 border border-slate-100 hover:border-[#00e5ff]/50 flex items-center justify-between group transition-all">
+                            <span
+                                class="font-black italic text-slate-700 group-hover:text-blue-600 transform group-hover:-skew-x-6 transition-transform">🔨
+                                Live Auction Desk</span>
+                            <span
+                                class="text-slate-400 group-hover:text-[#00e5ff] group-hover:translate-x-2 transition-all font-bold">→</span>
+                        </button>
+                        <button onclick="navigateTo('stats')"
+                            class="w-full text-left p-3.5 rounded-xl hover:bg-[#00e5ff]/5 border border-slate-100 hover:border-[#00e5ff]/50 flex items-center justify-between group transition-all">
+                            <span
+                                class="font-black italic text-slate-700 group-hover:text-blue-600 transform group-hover:-skew-x-6 transition-transform">📊
+                                Player Stats</span>
+                            <span
+                                class="text-slate-400 group-hover:text-[#00e5ff] group-hover:translate-x-2 transition-all font-bold">→</span>
+                        </button>
+                        <button onclick="navigateTo('media')"
+                            class="w-full text-left p-3.5 rounded-xl hover:bg-[#00e5ff]/5 border border-slate-100 hover:border-[#00e5ff]/50 flex items-center justify-between group transition-all">
+                            <span
+                                class="font-black italic text-slate-700 group-hover:text-blue-600 transform group-hover:-skew-x-6 transition-transform">📸
+                                Action Gallery</span>
+                            <span
+                                class="text-slate-400 group-hover:text-[#00e5ff] group-hover:translate-x-2 transition-all font-bold">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: LEAGUE                               -->
+        <!-- ========================================== -->
+        <div id="view-league" class="app-view">
+            <h1 class="text-3xl font-bold text-slate-900 mb-6">League Information</h1>
+            <div class="clean-card overflow-hidden">
+                <!-- Inner Tabs (Central Badge Style) -->
+                <div
+                    class="flex gap-4 p-4 bg-slate-50/80 border-b border-slate-200 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    <button onclick="switchInnerTab('league', 'about')" id="tab-league-about"
+                        class="tab-btn active shrink-0"><span>What is DPL</span></button>
+                    <button onclick="switchInnerTab('league', 'history')" id="tab-league-history"
+                        class="tab-btn shrink-0"><span>History / Seasons</span></button>
+                    <button onclick="switchInnerTab('league', 'rules')" id="tab-league-rules"
+                        class="tab-btn shrink-0"><span>Structure & Rules</span></button>
+                </div>
+
+                <div class="p-6 sm:p-8">
+                    <div id="content-league-about" class="block">
+                        <h2 class="text-2xl font-bold mb-4">About the League</h2>
+                        <p class="text-slate-600 mb-6 leading-relaxed">The Deshgavhan Premier League is a
+                            community-driven, highly competitive cricket tournament aimed at discovering and showcasing
+                            local talent. Operating on a professional franchise model.</p>
+                        <h3 class="text-lg font-bold mb-2">Vision & Mission</h3>
+                        <p class="text-slate-600 leading-relaxed">To provide a state-of-the-art platform for
+                            Deshgavhan's youth, promoting sportsmanship, unity, and physical excellence through the
+                            spirit of cricket.</p>
+                    </div>
+
+                    <div id="content-league-history" class="hide">
+                        <h2 class="text-2xl font-bold mb-6">Tournament History</h2>
+                        <div class="space-y-4">
+                            <div class="p-4 border border-slate-100 rounded-xl bg-slate-50">
+                                <h3 class="font-bold text-blue-600">Season 1</h3>
+                                <p class="text-sm text-slate-600 mt-1">The inaugural season that started it all. <span
+                                        class="font-bold text-slate-900">Winners: AP11</span></p>
+                            </div>
+                            <div class="p-4 border border-slate-100 rounded-xl bg-slate-50">
+                                <h3 class="font-bold text-emerald-600">Season 2</h3>
+                                <p class="text-sm text-slate-600 mt-1"> Expanded format with new franchises.
+                                    <span class="font-bold text-slate-900">Winners: AP11 (Title Defended 🏆)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="content-league-rules" class="hide">
+                        <h2 class="text-2xl font-bold mb-6">Structure & Rules</h2>
+                        <ul class="space-y-4 text-slate-700">
+                            <li class="flex items-start gap-3"><span class="text-blue-500 font-bold">1.</span>
+                                <div><strong>Match Format:</strong> Strictly T6 (6 Overs per inning). 60-minute match
+                                    duration.</div>
+                            </li>
+                            <li class="flex items-start gap-3"><span class="text-blue-500 font-bold">2.</span>
+                                <div><strong>Player Eligibility:</strong> <span
+                                        class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-sm font-bold ml-1">MUST
+                                        BE DESHGAVHAN DOMICILE</span>. Outside players are strictly prohibited.</div>
+                            </li>
+                            <li class="flex items-start gap-3"><span class="text-blue-500 font-bold">3.</span>
+                                <div><strong>Auction:</strong> All teams have an equal virtual purse. Base prices
+                                    determined by committee.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: TEAMS & PLAYERS                      -->
+        <!-- ========================================== -->
+        <div id="view-teams" class="app-view">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Official Franchises</h1>
+            <p class="text-slate-500 mb-8">Click a team to view their roster.</p>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" id="teams-grid">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="clean-card p-4 sm:p-6 bg-amber-50/50 border-amber-100">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="text-2xl">🔥</div>
+                        <h2 class="text-xl font-bold text-amber-900">Unassigned Player Pool</h2>
+                    </div>
+                    <span
+                        class="sm:ml-auto bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1 rounded-full self-start">Awaiting
+                        Auction</span>
+                </div>
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-sm min-w-[400px]">
+                        <thead class="text-xs uppercase text-amber-700 border-b border-amber-200">
+                            <tr>
+                                <th class="pb-3 px-2">Player Name</th>
+                                <th class="pb-3 px-2">Role</th>
+                                <th class="pb-3 px-2 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unassigned-list" class="text-slate-700">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: AUCTION SYSTEM                       -->
+        <!-- ========================================== -->
+        <div id="view-auction" class="app-view">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900 flex items-center gap-3">Live Auction Desk 🔨</h1>
+                    <p class="text-slate-500 mt-1">Assign players to franchises dynamically.</p>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Current Player Card -->
+                <div class="lg:col-span-1">
+                    <div
+                        class="clean-card p-6 sm:p-8 text-center bg-slate-900 text-white shadow-xl relative overflow-hidden h-full flex flex-col justify-center">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">👤</div>
+                        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">On The Block</h2>
+                        <h3 id="auction-player-name"
+                            class="text-3xl sm:text-4xl font-black text-white mb-2 break-words">---</h3>
+                        <p id="auction-player-role" class="text-blue-400 font-medium mb-6">---</p>
+
+                        <div class="bg-white/10 rounded-xl p-4 mb-8 border border-white/20">
+                            <p class="text-xs text-slate-400 uppercase mb-1">Base Price</p>
+                            <p id="auction-player-price" class="text-3xl font-bold text-emerald-400">---</p>
+                        </div>
+
+                        <!-- Button is now always visible for browsing -->
+                        <button id="btn-skip-player" onclick="nextAuctionPlayer()"
+                            class="btn-secondary w-full py-3 text-slate-900">Skip / Next Player →</button>
+                    </div>
+                </div>
+
+                <!-- Assignment Actions -->
+                <div class="lg:col-span-2 clean-card p-4 sm:p-6 flex flex-col">
+                    <h3 class="font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Assign to Franchise
+                        (Winning Bid)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8" id="auction-team-buttons">
+                        <!-- Populated dynamically based on Admin Access -->
+                    </div>
+
+                    <div class="mt-auto">
+                        <h3 class="font-bold text-slate-900 mb-3 text-sm uppercase">Auction Activity Log</h3>
+                        <div id="auction-log"
+                            class="bg-slate-50 border border-slate-200 rounded-xl p-4 h-40 overflow-y-auto text-sm font-mono text-slate-600 flex flex-col gap-2">
+                            <div><span class="text-emerald-500 font-bold">System:</span> Auction desk initialized.
+                                Waiting for bids.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: PLAYER HUB                           -->
+        <!-- ========================================== -->
+        <div id="view-hub" class="app-view">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-3xl font-bold text-slate-900">Player Hub</h1>
+            </div>
+
+            <div class="clean-card overflow-hidden max-w-4xl mx-auto shadow-2xl border-slate-200 bg-white">
+
+                <!-- 1. GEN-Z SELECTION SCREEN (Default View) -->
+                <div id="content-hub-selection" class="block p-4 sm:p-6 md:p-10">
+                    <div class="text-center mb-8 sm:mb-10">
+                        <h2
+                            class="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight transform -skew-x-6 mb-2">
+                            Welcome to the Draft</h2>
+                        <p class="text-slate-500 font-medium">Select an option to proceed to the secure portal.</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                        <!-- Registration Card -->
+                        <div onclick="switchInnerTab('hub', 'reg')"
+                            class="clean-card p-6 sm:p-8 cursor-pointer relative overflow-hidden group bg-[#0a192f] border border-[#D4AF37]/30 hover:border-[#D4AF37] transition-all duration-300 transform hover:-translate-y-2 shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_0_40px_rgba(212,175,55,0.3)] text-center flex flex-col items-center justify-center min-h-[250px] sm:min-h-[280px]">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                            </div>
+                            <span
+                                class="text-5xl sm:text-6xl mb-4 sm:mb-5 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">📝</span>
+                            <h3
+                                class="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-yellow-200 transform -skew-x-6 mb-2 tracking-wide uppercase">
+                                New Player</h3>
+                            <p class="text-slate-400 text-sm font-medium">Join the Deshgavhan Draft</p>
+                            <div
+                                class="mt-6 sm:mt-8 px-6 sm:px-8 py-2.5 rounded-full border border-[#D4AF37]/50 text-[#D4AF37] text-xs font-bold uppercase tracking-widest group-hover:bg-gradient-to-r group-hover:from-[#D4AF37] group-hover:to-[#B8942E] group-hover:text-[#0a192f] group-hover:border-transparent transition-all">
+                                Start Registration →</div>
+                        </div>
+
+                        <!-- Login Card -->
+                        <div onclick="switchInnerTab('hub', 'login')"
+                            class="clean-card p-6 sm:p-8 cursor-pointer relative overflow-hidden group bg-[#0a192f] border border-blue-500/30 hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-2 shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_0_40px_rgba(59,130,246,0.3)] text-center flex flex-col items-center justify-center min-h-[250px] sm:min-h-[280px]">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-bl from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                            </div>
+                            <span
+                                class="text-5xl sm:text-6xl mb-4 sm:mb-5 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">🔐</span>
+                            <h3
+                                class="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 transform -skew-x-6 mb-2 tracking-wide uppercase">
+                                Existing Player</h3>
+                            <p class="text-slate-400 text-sm font-medium">Access Your Dashboard</p>
+                            <div
+                                class="mt-6 sm:mt-8 px-6 sm:px-8 py-2.5 rounded-full border border-blue-500/50 text-blue-400 text-xs font-bold uppercase tracking-widest group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:text-white group-hover:border-transparent transition-all">
+                                Secure Login →</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-6 md:p-10 relative">
+
+                    <!-- 2. Reg Form -->
+                    <div id="content-hub-reg" class="hide max-w-md mx-auto">
+                        <button onclick="switchInnerTab('hub', 'selection')"
+                            class="text-sm font-bold text-slate-400 hover:text-slate-700 mb-6 flex items-center gap-1 transition-colors">←
+                            Back to Options</button>
+                        <div class="text-center mb-6">
+                            <h2
+                                class="text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-yellow-500 transform -skew-x-6 uppercase tracking-tight">
+                                Draft Registration</h2>
+                            <p class="text-sm text-slate-500 mt-1">Enter your details to join the player pool.</p>
+                        </div>
+                        <form id="player-reg-form" onsubmit="handlePlayerRegistration(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">1. Village/City</label>
+                                <select id="reg-village" onchange="handleVillageChange(this)" required
+                                    class="clean-input appearance-none bg-slate-50 w-full">
+                                    <option value="">Select Village...</option>
+                                    <option value="Deshgavhan">Deshgavhan</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label><input
+                                    type="text" id="reg-name" required class="clean-input bg-slate-50 w-full"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Mobile
+                                    Number</label><input type="tel" id="reg-mobile" required
+                                    class="clean-input bg-slate-50 w-full"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                                <select id="reg-role" required class="clean-input appearance-none bg-slate-50 w-full">
+                                    <option value="">Select Role</option>
+                                    <option value="Batsman">Batsman</option>
+                                    <option value="Bowler">Bowler</option>
+                                    <option value="All-Rounder">All-Rounder</option>
+                                    <option value="Keeper">Wicket-Keeper</option>
+                                </select>
+                            </div>
+                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mt-2">
+                                <label class="block text-sm font-bold text-blue-900 mb-1">Create 4-Digit Security
+                                    PIN</label>
+                                <input type="password" id="reg-pin" pattern="[0-9]{4}" maxlength="4" required
+                                    placeholder="e.g. 1234"
+                                    class="clean-input text-center tracking-widest font-mono text-lg !border-blue-200 focus:!border-blue-500 w-full">
+                                <p class="text-xs text-blue-600 mt-2 text-center">* Remember this PIN to access your
+                                    profile later.</p>
+                            </div>
+                            <button type="submit"
+                                class="btn-primary w-full py-4 mt-6 text-lg shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">Submit
+                                Application</button>
+                        </form>
+                    </div>
+
+                    <!-- 3. Login -->
+                    <div id="content-hub-login" class="hide max-w-xs mx-auto">
+                        <button onclick="switchInnerTab('hub', 'selection')"
+                            class="text-sm font-bold text-slate-400 hover:text-slate-700 mb-8 flex items-center gap-1 transition-colors">←
+                            Back to Options</button>
+                        <div class="text-center mb-8">
+                            <div
+                                class="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20 transform rotate-3 mb-4">
+                                <span class="text-4xl text-white transform -rotate-3">🔐</span>
+                            </div>
+                            <h2
+                                class="text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 transform -skew-x-6 uppercase tracking-tight">
+                                Secure Login</h2>
+                            <p class="text-sm text-slate-500 mt-1">Access your player dashboard.</p>
+                        </div>
+                        <form id="player-login-form" onsubmit="handlePlayerLogin(event)" class="space-y-5">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 text-center">Mobile
+                                    Number</label>
+                                <input type="tel" id="login-mobile" required placeholder="Enter Mobile"
+                                    class="clean-input text-center bg-slate-50 text-lg font-medium w-full">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 text-center">4-Digit
+                                    PIN</label>
+                                <input type="password" id="login-pin" pattern="[0-9]{4}" maxlength="4" required
+                                    placeholder="••••"
+                                    class="clean-input text-center tracking-[0.5em] font-mono text-2xl bg-slate-50 w-full">
+                            </div>
+                            <button type="submit"
+                                class="btn-primary w-full py-4 mt-2 text-lg shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">Login</button>
+                        </form>
+                    </div>
+
+                    <!-- 4. Dashboard (Hidden until Auth) -->
+                    <div id="content-hub-dash" class="hide">
+                        <!-- Authenticated Profile State -->
+                        <div id="hub-dash-profile" class="block max-w-2xl mx-auto">
+                            <div class="flex items-center justify-between mb-6 sm:mb-8">
+                                <h2
+                                    class="text-xl sm:text-2xl font-black italic text-slate-900 transform -skew-x-6 uppercase tracking-tight">
+                                    Player Portal</h2>
+                                <button onclick="handlePlayerLogout()"
+                                    class="text-[10px] sm:text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-3 py-2 rounded-lg border border-red-100 transition-colors uppercase tracking-widest">Secure
+                                    Logout</button>
+                            </div>
+
+                            <div
+                                class="clean-card bg-[#0a192f] border-slate-800 p-6 md:p-8 mb-8 shadow-2xl relative overflow-hidden">
+                                <!-- Background Glow -->
+                                <div
+                                    class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none">
+                                </div>
+
+                                <div
+                                    class="flex flex-col md:flex-row items-center md:items-start gap-4 sm:gap-6 relative z-10 text-center md:text-left">
+                                    <!-- GenZ Styled Profile Avatar -->
+                                    <div id="profile-initial"
+                                        class="w-20 h-20 sm:w-24 sm:h-24 bg-[#112240] border border-[#D4AF37]/50 text-transparent bg-clip-text bg-gradient-to-br from-[#D4AF37] to-yellow-200 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl font-black italic shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] transform -skew-x-6 shrink-0 shadow-lg">
+                                        P</div>
+
+                                    <div class="flex flex-col items-center md:items-start mt-2">
+                                        <!-- GenZ Styled Profile Name -->
+                                        <h3 id="profile-name"
+                                            class="text-2xl sm:text-3xl md:text-4xl font-black italic text-white drop-shadow-md transform -skew-x-6 uppercase tracking-tight mb-1 sm:mb-2">
+                                            Player Name</h3>
+
+                                        <!-- GenZ Styled Profile Role -->
+                                        <p id="profile-role"
+                                            class="text-xs sm:text-sm md:text-base font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#10b981] to-[#3b82f6] drop-shadow-sm transform -skew-x-6 uppercase tracking-widest">
+                                            Role</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                                <div
+                                    class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center md:text-left">
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mobile
+                                    </p>
+                                    <p id="profile-mobile" class="font-bold text-slate-900 text-lg">---</p>
+                                </div>
+                                <div
+                                    class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center md:text-left">
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Origin
+                                    </p>
+                                    <p class="font-bold text-slate-900 text-lg">Deshgavhan</p>
+                                </div>
+                                <div
+                                    class="bg-amber-50 p-5 rounded-2xl border border-amber-100 shadow-sm sm:col-span-2 md:col-span-1 text-center md:text-left">
+                                    <p class="text-xs font-bold text-amber-600/70 uppercase tracking-widest mb-1">Draft
+                                        Status</p>
+                                    <p
+                                        class="font-bold text-amber-700 text-lg flex items-center justify-center md:justify-start gap-2">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Awaiting Bid</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: LIVE SCORE                           -->
+        <!-- ========================================== -->
+        <div id="view-live" class="app-view">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="live-dot"></span>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Live Match Center</h1>
+                <span
+                    class="ml-auto text-[10px] sm:text-xs font-bold text-slate-500 bg-slate-200 px-2 sm:px-3 py-1 rounded-full flex items-center gap-1 sm:gap-2">Auto
+                    <svg class="animate-spin h-3 w-3 text-slate-600 hidden sm:block" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg></span>
+            </div>
+
+            <div class="clean-card bg-slate-900 text-white p-6 md:p-10 mb-8 border-slate-800 shadow-2xl">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8">
+                    <!-- Team 1 -->
+                    <div class="text-center w-full md:w-1/3">
+                        <h2 id="live-team-1" class="text-xl md:text-2xl font-bold text-slate-300">AP11</h2>
+                        <div class="text-5xl md:text-7xl font-black text-emerald-400 tracking-tighter mt-2"
+                            id="live-score-1">112<span class="text-3xl md:text-4xl text-emerald-200">/4</span></div>
+                        <p class="text-slate-400 mt-2 font-mono" id="live-overs-1">Overs: 8.2 / 10</p>
+                    </div>
+
+                    <!-- VS -->
+                    <div class="text-slate-500 font-black text-xl sm:text-2xl italic">VS</div>
+
+                    <!-- Team 2 -->
+                    <div class="text-center w-full md:w-1/3">
+                        <h2 id="live-team-2" class="text-xl md:text-2xl font-bold text-slate-300">Cotton11</h2>
+                        <div id="live-score-2" class="text-2xl sm:text-3xl font-bold text-slate-500 mt-2 sm:mt-4">Yet to bat</div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-700 mt-6 sm:mt-8 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+                    <div>
+                        <p class="text-slate-400 uppercase tracking-widest text-xs mb-2">Current Batters</p>
+                        <div class="flex justify-between font-bold"><span id="live-batter-1" class="text-white">Rahul D. *</span> <span
+                                class="text-amber-400">42 (18)</span></div>
+                        <div class="flex justify-between font-bold mt-1"><span class="text-slate-300">Amit S.</span>
+                            <span class="text-amber-400">12 (8)</span></div>
+                    </div>
+                    <div class="border-t border-slate-800 pt-4 sm:border-0 sm:pt-0">
+                        <p class="text-slate-400 uppercase tracking-widest text-xs mb-2">Current Bowler</p>
+                        <div class="flex justify-between font-bold"><span id="live-bowler" class="text-white">Jasprit</span> <span
+                                class="text-blue-400">2-18 (1.2)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: STATS DASHBOARD                      -->
+        <!-- ========================================== -->
+        <div id="view-stats" class="app-view">
+            <h1 class="text-3xl font-bold text-slate-900 mb-6">Stats Dashboard 📊</h1>
+
+            <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                <!-- AI Ranking -->
+                <div class="clean-card p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100">
+                    <h2 class="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">🧠 AI Player Ranking</h2>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-indigo-50 mb-3 flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600 shrink-0">
+                            #1</div>
+                        <div class="truncate">
+                            <p class="font-bold text-slate-900 truncate">Ratan Huse</p>
+                            <p class="text-xs text-slate-500">Form Rating: 99/100</p>
+                        </div>
+                        <span class="ml-auto text-xl">🔥</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-indigo-50 flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 shrink-0">
+                            #2</div>
+                        <div class="truncate">
+                            <p class="font-bold text-slate-900 truncate">Gajanan Devare</p>
+                            <p class="text-xs text-slate-500">Form Rating: 96/100</p>
+                        </div>
+                        <span class="ml-auto text-xl">🎯</span>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Bat -->
+                <div class="clean-card p-0 overflow-hidden">
+                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-100 font-bold text-slate-700">Top Batsmen
+                    </div>
+                    <ul class="divide-y divide-slate-100 text-sm">
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">1. Ratan Huse <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(AP11)</span></span>
+                            <span class="font-bold text-blue-600">412 Runs</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">2. Deepak Karad <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Cotton11)</span></span>
+                            <span class="font-bold text-blue-600">385 Runs</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">3. Akash Ghatte <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Balkrushna11)</span></span>
+                            <span class="font-bold text-blue-600">340 Runs</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">4. AR Huse <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Ajinkya11)</span></span>
+                            <span class="font-bold text-blue-600">290 Runs</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">5. Sameer <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Ankushraj11)</span></span>
+                            <span class="font-bold text-blue-600">250 Runs</span></li>
+                    </ul>
+                </div>
+
+                <!-- Leaderboard Bowl -->
+                <div class="clean-card p-0 overflow-hidden">
+                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-100 font-bold text-slate-700">Top Bowlers
+                    </div>
+                    <ul class="divide-y divide-slate-100 text-sm">
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">1. Gajanan Devare <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(AP11)</span></span>
+                            <span class="font-bold text-emerald-600">24 Wkts</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">2. Rushikesh <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Cotton11)</span></span>
+                            <span class="font-bold text-emerald-600">21 Wkts</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">3. Mangesh Huse <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Balkrushna11)</span></span>
+                            <span class="font-bold text-emerald-600">18 Wkts</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">4. Vijay Huse <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Ajinkya11)</span></span>
+                            <span class="font-bold text-emerald-600">15 Wkts</span></li>
+                        <li class="p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1"><span
+                                class="font-medium">5. Swapnil Nagre <span
+                                    class="text-[10px] font-bold text-slate-400 ml-1 uppercase">(Ankushraj11)</span></span>
+                            <span class="font-bold text-emerald-600">12 Wkts</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="clean-card p-4 sm:p-6 overflow-hidden">
+                <h2 class="text-lg font-bold text-slate-900 mb-6">Tournament Scoring Trends</h2>
+                <div class="chart-container overflow-x-auto w-full">
+                    <div class="min-w-[400px] h-[300px]"><canvas id="statsChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: MEDIA                                -->
+        <!-- ========================================== -->
+        <div id="view-media" class="app-view">
+            <h1 class="text-3xl font-bold text-slate-900 mb-6">Media Center</h1>
+            <div class="grid md:grid-cols-2 gap-8">
+
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Latest News</h2>
+                    <div class="space-y-4">
+                        <div class="clean-card p-4 hover:bg-slate-50 cursor-pointer">
+                            <span class="text-xs font-bold text-blue-600 uppercase">Announcement</span>
+                            <h3 class="font-bold text-slate-900 mt-1">Season 5 Auction Dates Confirmed</h3>
+                            <p class="text-sm text-slate-500 mt-2">The management has officially announced the auction
+                                for the 15th of November.</p>
+                        </div>
+                        <div class="clean-card p-4 hover:bg-slate-50 cursor-pointer">
+                            <span class="text-xs font-bold text-emerald-600 uppercase">Update</span>
+                            <h3 class="font-bold text-slate-900 mt-1">Prize Pool Increased</h3>
+                            <p class="text-sm text-slate-500 mt-2">Sponsorships have driven the total prize pool over
+                                ₹50,000.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Action Gallery</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div
+                            class="clean-card aspect-square bg-slate-800 flex items-center justify-center text-4xl text-white opacity-90 hover:opacity-100 transition-opacity cursor-pointer">
+                            🏆</div>
+                        <div
+                            class="clean-card aspect-square bg-slate-800 flex items-center justify-center text-4xl text-white opacity-90 hover:opacity-100 transition-opacity cursor-pointer">
+                            🏏</div>
+                        <div
+                            class="clean-card aspect-square bg-slate-800 flex items-center justify-center text-4xl text-white opacity-90 hover:opacity-100 transition-opacity cursor-pointer">
+                            🔥</div>
+                        <div
+                            class="clean-card aspect-square bg-slate-800 flex items-center justify-center text-4xl text-white opacity-90 hover:opacity-100 transition-opacity cursor-pointer">
+                            🏟️</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: ADMIN PANEL (GEN-Z REDESIGN)         -->
+        <!-- ========================================== -->
+        <div id="view-admin" class="app-view">
+            <div class="max-w-md mx-auto mt-10">
+                <div class="text-center mb-10">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-2xl mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(220,38,38,0.3)] transform rotate-3 mb-6 hover:rotate-6 transition-transform">
+                        <span class="text-4xl text-white transform -rotate-3">⚠️</span>
+                    </div>
+                    <h2
+                        class="text-3xl md:text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 transform -skew-x-6 uppercase tracking-tight mb-2">
+                        System Admin</h2>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-widest">Restricted Override Protocol
+                    </p>
+                </div>
+
+                <div
+                    class="clean-card bg-[#0a192f] border border-red-500/30 p-6 sm:p-8 shadow-[0_10px_40px_rgba(220,38,38,0.15)] relative overflow-hidden group">
+                    <!-- Background ambient glow -->
+                    <div
+                        class="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-red-600/20 transition-colors duration-500">
+                    </div>
+
+                    <!-- Admin Login Form -->
+                    <form id="admin-login-form" onsubmit="handleAdminLogin(event)"
+                        class="space-y-6 block relative z-10">
+                        <div>
+                            <label class="block text-xs font-bold text-red-400/80 uppercase tracking-widest mb-2">Admin
+                                Identification</label>
+                            <input type="text" id="admin-username" required
+                                class="w-full bg-[#112240] border border-red-500/30 rounded-xl p-4 text-white font-mono tracking-wider focus:outline-none focus:border-red-500 focus:shadow-[0_0_15px_rgba(220,38,38,0.3)] transition-all placeholder:text-slate-600"
+                                placeholder="Enter 'dpl'">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-red-400/80 uppercase tracking-widest mb-2">Master
+                                Key</label>
+                            <input type="password" id="admin-password" required
+                                class="w-full bg-[#112240] border border-red-500/30 rounded-xl p-4 text-white font-mono tracking-[0.3em] focus:outline-none focus:border-red-500 focus:shadow-[0_0_15px_rgba(220,38,38,0.3)] transition-all placeholder:text-slate-600"
+                                placeholder="••••••">
+                        </div>
+                        <button type="submit"
+                            class="w-full py-4 mt-2 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 text-white font-black italic uppercase tracking-widest transform -skew-x-6 hover:scale-[1.02] transition-transform shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)]">
+                            Authenticate <span class="inline-block transform skew-x-6">→</span>
+                        </button>
+                    </form>
+
+                    <!-- Logged In: JS navigates to adminpanel view -->
+                    <div id="admin-logged-in" class="hide text-center py-4 relative z-10">
+                        <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl mx-auto flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)] mb-4">
+                            <span class="text-3xl">✅</span>
+                        </div>
+                        <p class="text-emerald-400 font-bold text-sm">Redirecting to Admin Panel...</p>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-red-500/20 text-xs text-slate-400 font-mono relative z-10">
+                        <p class="text-red-400/80 font-bold mb-2">// ACTIVE DIRECTIVES:</p>
+                        <ul class="list-none space-y-1.5 opacity-70">
+                            <li class="flex items-center gap-2"><span
+                                    class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Override Player
+                                Assignments</li>
+                            <li class="flex items-center gap-2"><span
+                                    class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Force Live Score
+                                Updates</li>
+                            <li class="flex items-center gap-2"><span
+                                    class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Approve Roster
+                                Changes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW: ADMIN PANEL (FULL DASHBOARD)         -->
+        <!-- ========================================== -->
+        <div id="view-adminpanel" class="app-view">
+
+            <!-- Top Admin Header Bar -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                <div class="flex items-center gap-4">
+                    <!-- Admin Avatar -->
+                    <div class="w-14 h-14 bg-gradient-to-br from-red-600 to-orange-500 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.3)] transform rotate-3 shrink-0">
+                        <span class="text-2xl transform -rotate-3">⚙️</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 uppercase tracking-tight leading-none">Admin Control Center</h1>
+                        <p class="text-xs text-slate-500 font-mono mt-0.5">// Full override privileges active</p>
+                    </div>
+                </div>
+                <button onclick="handleAdminLogout()" class="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-500/50 text-red-500 font-bold uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all shadow-[0_0_15px_rgba(220,38,38,0.1)]">
+                    🔒 Terminate Session
+                </button>
+            </div>
+
+            <!-- Admin Info Card -->
+            <div class="clean-card bg-[#0a192f] border border-[#D4AF37]/30 p-6 md:p-8 mb-8 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
+                    <!-- Gold Avatar -->
+                    <div class="w-20 h-20 bg-gradient-to-br from-[#D4AF37] to-yellow-600 rounded-2xl flex items-center justify-center shadow-[0_0_25px_rgba(212,175,55,0.4)] transform -rotate-3 shrink-0">
+                        <span class="text-4xl font-black text-[#0a192f] transform rotate-3">A</span>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <span class="text-[10px] font-bold text-[#D4AF37]/60 uppercase tracking-[0.25em]">Authorized Administrator</span>
+                        <h2 class="text-3xl md:text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-yellow-200 uppercase tracking-tight transform -skew-x-3 mt-0.5">Amol Huse</h2>
+                        <p class="text-base font-bold text-white/80 mt-1">ARc next Pvt Ltd</p>
+                        <p class="text-sm text-slate-400 flex items-center justify-center md:justify-start gap-1.5 mt-1">
+                            <span>📍</span> At Pune, Maharashtra, India
+                        </p>
+                    </div>
+                    <!-- Status Badges -->
+                    <div class="md:ml-auto flex flex-col gap-3 text-right">
+                        <div class="flex items-center gap-2 justify-end">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-emerald-400 font-bold text-xs uppercase tracking-widest">Session Active</span>
+                        </div>
+                        <div class="bg-[#112240] rounded-xl px-4 py-2 border border-[#D4AF37]/20">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest">Total Registrations</p>
+                            <p class="text-2xl font-black text-white" id="admin-total-players">0</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Active Directives (decorative code block) -->
+                <div class="mt-6 pt-5 border-t border-[#D4AF37]/15 font-mono text-xs relative z-10">
+                    <p class="text-red-400/80 font-bold mb-2">// ACTIVE DIRECTIVES:</p>
+                    <ul class="list-none space-y-1.5 opacity-80">
+                        <li class="flex items-center gap-2 text-slate-300"><span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Override Player Assignments — <span class="text-emerald-400">UNLOCKED</span></li>
+                        <li class="flex items-center gap-2 text-slate-300"><span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Force Live Score Updates — <span class="text-emerald-400">UNLOCKED</span></li>
+                        <li class="flex items-center gap-2 text-slate-300"><span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> Approve Roster Changes — <span class="text-emerald-400">UNLOCKED</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- DIRECTIVE 1: Override Player Assignments -->
+            <div class="clean-card p-0 overflow-hidden mb-6 border-slate-200 shadow-lg">
+                <div class="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+                    <span class="text-xl">🔨</span>
+                    <div>
+                        <h2 class="font-black uppercase tracking-wide text-base">Override Player Assignments</h2>
+                        <p class="text-blue-200 text-xs">Drag any unassigned player to a franchise below.</p>
+                    </div>
+                </div>
+                <div class="p-4 sm:p-6">
+                    <!-- Auction Current Player & Quick Assign -->
+                    <div class="grid md:grid-cols-3 gap-4 mb-6">
+                        <div class="md:col-span-1 bg-slate-900 rounded-2xl p-5 text-center flex flex-col gap-2 items-center justify-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Currently On Block</span>
+                            <p id="ap-player-name" class="text-2xl font-black text-white italic transform -skew-x-6">---</p>
+                            <p id="ap-player-role" class="text-blue-400 text-sm font-medium">---</p>
+                            <p id="ap-player-price" class="text-emerald-400 font-bold text-lg">---</p>
+                            <button onclick="adminNextPlayer()" class="mt-2 w-full py-2 rounded-xl border border-slate-600 text-slate-300 text-xs font-bold hover:bg-slate-700 transition-all">⏭ Next Player</button>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Assign to Franchise</p>
+                            <div id="admin-assign-buttons" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                        </div>
+                    </div>
+                    <!-- Full Unassigned Table -->
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Full Unassigned Pool (from Google Sheets)</p>
+                        <div class="overflow-x-auto rounded-xl border border-slate-100">
+                            <table class="w-full text-sm text-left min-w-[480px]">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-500 border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-3 px-4">#</th>
+                                        <th class="py-3 px-4">Player Name</th>
+                                        <th class="py-3 px-4">Role</th>
+                                        <th class="py-3 px-4">Base Price</th>
+                                        <th class="py-3 px-4 text-center">Assign To</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-unassigned-table" class="divide-y divide-slate-100 text-slate-700">
+                                    <tr><td colspan="5" class="py-6 text-center text-slate-400">Syncing from Google Sheets...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIRECTIVE 2: Force Live Score Updates -->
+            <div class="clean-card p-0 overflow-hidden mb-6 border-slate-200 shadow-lg">
+                <div class="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
+                    <span class="text-xl">⚡</span>
+                    <div>
+                        <h2 class="font-black uppercase tracking-wide text-base">Force Live Score Updates</h2>
+                        <p class="text-emerald-200 text-xs">Manually push the official live scorecard.</p>
+                    </div>
+                </div>
+                <div class="p-4 sm:p-6">
+                    <div class="grid sm:grid-cols-2 gap-4 max-w-2xl">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Team 1 Name</label>
+                            <input type="text" id="ls-team1" value="AP11" class="clean-input bg-slate-50 text-sm" placeholder="e.g. AP11">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Team 1 Score</label>
+                            <input type="text" id="ls-score1" value="112/4 (8.2 ov)" class="clean-input bg-slate-50 text-sm" placeholder="e.g. 112/4 (8.2 ov)">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Team 2 Name</label>
+                            <input type="text" id="ls-team2" value="Cotton11" class="clean-input bg-slate-50 text-sm" placeholder="e.g. Cotton11">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Team 2 Score</label>
+                            <input type="text" id="ls-score2" value="Yet to bat" class="clean-input bg-slate-50 text-sm" placeholder="e.g. Yet to bat">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Current Batter *</label>
+                            <input type="text" id="ls-batter1" value="Rahul D. *" class="clean-input bg-slate-50 text-sm" placeholder="Opening batter">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Current Bowler</label>
+                            <input type="text" id="ls-bowler" value="Jasprit" class="clean-input bg-slate-50 text-sm" placeholder="Current bowler">
+                        </div>
+                    </div>
+                    <button onclick="forceScoreUpdate()" class="mt-5 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black uppercase tracking-wider text-sm hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all hover:-translate-y-0.5 transform">
+                        ⚡ Push Live Score
+                    </button>
+                </div>
+            </div>
+
+            <!-- DIRECTIVE 3: Approve Roster Changes -->
+            <div class="clean-card p-0 overflow-hidden mb-8 border-slate-200 shadow-lg">
+                <div class="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white">
+                    <span class="text-xl">📋</span>
+                    <div>
+                        <h2 class="font-black uppercase tracking-wide text-base">Approve Roster Changes</h2>
+                        <p class="text-amber-100 text-xs">View all drafted players per franchise and approve or override.</p>
+                    </div>
+                </div>
+                <div class="p-4 sm:p-6">
+                    <div id="admin-roster-view" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <!-- Download Final Data Sheet -->
+            <div class="clean-card p-6 bg-gradient-to-r from-slate-900 to-slate-800 border-slate-700 shadow-xl">
+                <div class="flex flex-col sm:flex-row items-center gap-6 justify-between">
+                    <div>
+                        <h3 class="text-lg font-black text-white uppercase tracking-wide">📥 Download Final Data Sheet</h3>
+                        <p class="text-slate-400 text-sm mt-1">Export the complete registered player database from Google Sheets as a CSV file.</p>
+                    </div>
+                    <button onclick="downloadPlayerDataCSV()" class="shrink-0 px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black uppercase tracking-wider text-sm hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all hover:-translate-y-1 transform flex items-center gap-3">
+                        <span class="text-xl">📥</span> Download CSV
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-auto">
+        <div class="max-w-[1400px] mx-auto flex flex-col items-center justify-center gap-4">
+            <div class="flex items-center gap-4">
+                <!-- AR Logo replaced with placeholder for the web environment -->
+                <img src="https://ui-avatars.com/api/?name=AR&background=0D8ABC&color=fff&size=128" alt="AR Logo"
+                    class="h-14 w-auto rounded-lg object-contain shadow-md border border-slate-100">
+
+                <!-- DPL 3.0 Text (Two lines) -->
+                <div class="text-left flex flex-col justify-center">
+                    <div class="font-black text-slate-900 text-2xl tracking-tight leading-none mb-1">DPL 3.0</div>
+                    <div class="text-sm text-slate-500 leading-none">© 2026 Deshgavhan Premier League.</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Universal Modal -->
+    <div id="custom-modal"
+        class="fixed inset-0 flex items-center justify-center hide px-4 transition-opacity duration-300 z-[1000]">
+        <div class="absolute inset-0 bg-slate-900/40 cursor-pointer" onclick="closeModal()"></div>
+        <div class="bg-white rounded-2xl shadow-2xl p-0 max-w-sm w-full z-10 relative overflow-hidden transform scale-95 opacity-0 transition-all duration-300 border border-slate-100"
+            id="modal-content-box">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <h3 id="modal-title" class="text-lg font-bold text-slate-900">Notice</h3>
+                <button onclick="closeModal()"
+                    class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-6">
+                <div id="modal-body" class="mb-6 text-slate-600 text-sm leading-relaxed"></div>
+                <button onclick="closeModal()" class="w-full btn-secondary py-2.5 text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic (Vanilla JS) -->
+    <script>
+        // --- 1. State Management ---
+        const state = {
+            teams: {
+                'AP11': [],
+                'Cotton11': [],
+                'Balkrushna11': [],
+                'Ajinkya Classes11': [],
+                'Ankushraj11': []
+            },
+            unassigned: [],
+            registeredPlayers: [], // Stores new registrations during this session
+            allPlayers: [], // Stores the full database list for admin data extract
+            loggedInPlayer: null,
+            auctionIndex: 0,
+            chartInitialized: false,
+            isAdmin: false // Tracks if user has unlocked the admin panel
+        };
+
+        // --- MOBILE MENU LOGIC ---
+        let mobileMenuOpen = false;
+        function toggleMobileMenu(forceState) {
+            const nav = document.getElementById('mobile-nav');
+            if (typeof forceState === 'boolean') {
+                mobileMenuOpen = forceState;
+            } else {
+                mobileMenuOpen = !mobileMenuOpen;
+            }
+
+            if (mobileMenuOpen) {
+                nav.classList.remove('translate-x-full');
+                document.body.style.overflow = 'hidden'; // Stop background scrolling
+            } else {
+                nav.classList.add('translate-x-full');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // --- 2. Navigation & View Logic ---
+        function navigateTo(viewId) {
+            // Close mobile menu if it's open
+            toggleMobileMenu(false);
+
+            // Hide all views
+            document.querySelectorAll('.app-view').forEach(el => el.classList.remove('active-view'));
+            // Show target
+            document.getElementById(`view-${viewId}`).classList.add('active-view');
+            // Update nav links
+            document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(el => {
+                if (el.dataset.target === viewId) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+            // Scroll to top smoothly
+            window.scrollTo(0, 0);
+
+            // Special initializations based on view
+            if (viewId === 'teams') { syncDataFromGoogleSheets(); renderTeams(); }
+            if (viewId === 'auction') { syncDataFromGoogleSheets(); renderAuctionPlayer(); renderAuctionButtons(); }
+            if (viewId === 'stats' && !state.chartInitialized) renderChart();
+            if (viewId === 'adminpanel') { syncDataFromGoogleSheets().then(() => renderAdminPanel()); }
+
+            // Hub Routing Logic (Direct to Dashboard if logged in)
+            if (viewId === 'hub') {
+                if (state.loggedInPlayer) {
+                    switchInnerTab('hub', 'dash');
+                } else {
+                    switchInnerTab('hub', 'selection');
+                }
+            }
+        }
+
+        function switchInnerTab(group, tabId) {
+            // Hide all contents in group
+            document.querySelectorAll(`[id^="content-${group}-"]`).forEach(el => el.classList.add('hide'));
+
+            // Deactivate all buttons in group (if any still exist)
+            document.querySelectorAll(`[id^="tab-${group}-"]`).forEach(el => el.classList.remove('active'));
+
+            // Show/Activate target
+            const targetContent = document.getElementById(`content-${group}-${tabId}`);
+            if (targetContent) targetContent.classList.remove('hide');
+
+            const targetTab = document.getElementById(`tab-${group}-${tabId}`);
+            if (targetTab) targetTab.classList.add('active');
+        }
+
+        // --- 3. Dynamic UI Rendering ---
+        function renderTeams() {
+            const grid = document.getElementById('teams-grid');
+            grid.innerHTML = '';
+
+            // Map owners and their unique GenZ gradient colors to the teams
+            const teamDetails = {
+                'AP11': { owner: 'Atish Palwe', grad: 'from-[#ff00ff] to-[#ff8c00]' }, // Pink to Orange
+                'Cotton11': { owner: 'Bhagwat Dole', grad: 'from-[#00e5ff] to-[#3b82f6]' }, // Cyan to Blue
+                'Balkrushna11': { owner: 'Mukund Huse', grad: 'from-[#10b981] to-[#ccff00]' }, // Emerald to Lime
+                'Ajinkya Classes11': { owner: 'Ajinkya Dhakane Sir', grad: 'from-[#ef4444] to-[#f97316]' }, // Red to Orange
+                'Ankushraj11': { owner: 'Yogesh Huse Sir', grad: 'from-[#a855f7] to-[#ec4899]' } // Purple to Pink
+            };
+            const teamImages = {
+                'AP11': '1.png',
+                'Cotton11': '2.png',
+                'Balkrushna11': '3.png',
+                'Ajinkya Classes11': '4.png',
+                'Ankushraj11': '5.png'
+            };
+            const teamImageClasses = {
+                'AP11': 'team-photo--1',
+                'Cotton11': 'team-photo--2',
+                'Balkrushna11': 'team-photo--3',
+                'Ajinkya Classes11': 'team-photo--4',
+                'Ankushraj11': 'team-photo--5'
+            };
+
+            Object.keys(state.teams).forEach(team => {
+                const count = state.teams[team].length;
+                const details = teamDetails[team] || { owner: 'Unknown', grad: 'from-slate-500 to-slate-700' };
+                const teamImage = teamImages[team];
+                const teamImageClass = teamImageClasses[team] || '';
+
+                const html = `
+                    <div onclick="showTeamModal('${team}')" class="team-card clean-card clean-card-hover p-4 sm:p-6 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden group border-2 border-transparent hover:border-slate-200">
+                        <!-- Subtle background glow on hover -->
+                        <div class="absolute inset-0 bg-gradient-to-br ${details.grad} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 pointer-events-none"></div>
+                        
+                        <div class="w-full sm:max-w-[60%] relative z-10">
+                            <h3 class="font-black text-xl sm:text-2xl text-slate-900 mb-2 uppercase tracking-tight">${team}</h3>
+                            
+                            <!-- GenZ Stylish Owner Display -->
+                            <div class="mb-4">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Franchise Owner</span>
+                                <span class="text-lg sm:text-xl md:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r ${details.grad} drop-shadow-sm transform -skew-x-6 inline-block">
+                                    ${details.owner}
+                                </span>
+                            </div>
+                            
+                            <p class="text-xs font-bold text-slate-600 bg-slate-100 inline-block px-3 py-1.5 rounded-md border border-slate-200">
+                                🏏 ${count} Players Drafted
+                            </p>
+                        </div>
+                        <div class="team-photo-wrap relative z-10">
+                            ${teamImage ? `<div class="team-photo-frame"><img src="${teamImage}" alt="${team} owner" class="team-photo ${teamImageClass} select-none pointer-events-none"></div>` : ''}
+                        </div>
+                        <div class="hidden sm:flex absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-slate-50/90 border-2 border-slate-100 items-center justify-center text-slate-400 group-hover:translate-x-2 transition-transform shadow-sm shrink-0 z-10">→</div>
+                    </div>
+                `;
+                grid.innerHTML += html;
+            });
+
+            const unassignedList = document.getElementById('unassigned-list');
+            unassignedList.innerHTML = '';
+            state.unassigned.forEach(p => {
+                unassignedList.innerHTML += `
+                    <tr class="border-b border-amber-100/50 last:border-0">
+                        <td class="py-3 px-2 font-medium">${p.name}</td>
+                        <td class="py-3 px-2 text-slate-500">${p.role}</td>
+                        <td class="py-3 px-2 text-right"><span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-xs">Waiting</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- 4. Auction System Logic ---
+        function renderAuctionPlayer() {
+            const player = state.unassigned[state.auctionIndex];
+            if (player) {
+                document.getElementById('auction-player-name').innerText = player.name;
+                document.getElementById('auction-player-role').innerText = player.role;
+                document.getElementById('auction-player-price').innerText = player.price;
+            } else {
+                document.getElementById('auction-player-name').innerText = "Pool Empty";
+                document.getElementById('auction-player-role').innerText = "All players auctioned.";
+                document.getElementById('auction-player-price').innerText = "---";
+            }
+        }
+
+        // Updated to strictly enforce Read-Only vs Admin Mode
+        function renderAuctionButtons() {
+            const container = document.getElementById('auction-team-buttons');
+            const skipBtn = document.getElementById('btn-skip-player');
+
+            container.innerHTML = '';
+
+            // Allow everyone (guests and admins) to view the next player
+            if (skipBtn) skipBtn.classList.remove('hide');
+
+            if (state.isAdmin) {
+                // Show Assign Buttons
+                Object.keys(state.teams).forEach(team => {
+                    container.innerHTML += `<button onclick="assignPlayer('${team}')" class="btn-secondary py-2 text-sm truncate px-2 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">${team}</button>`;
+                });
+            } else {
+                // Show View-Only Message for assignments
+                container.innerHTML = `
+                    <div class="col-span-full bg-slate-50 border border-slate-200 rounded-xl p-6 text-center text-slate-500">
+                        <span class="block text-3xl mb-3">👁️</span>
+                        <h3 class="font-bold text-slate-700 text-lg mb-1">Read-Only Mode Active</h3>
+                        <p class="text-sm">You can browse the player pool, but only authorized administrators can assign players to franchises. Log in via the Admin panel to gain control.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function assignPlayer(teamName) {
+            const player = state.unassigned[state.auctionIndex];
+            if (!player) return; // Pool empty
+            try {
+
+            // Move player from unassigned to the selected team
+            const result = await assignPlayerToTeam(player, teamName);
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Assignment failed.');
+            }
+
+            // Log activity
+            const log = document.getElementById('auction-log');
+            if (log) {
+                log.innerHTML = `<div><span class="text-blue-600 font-bold">${teamName}</span> secured ${player.name} at ${player.price}</div>` + log.innerHTML;
+            }
+
+            await syncDataFromGoogleSheets();
+            setTimeout(syncDataFromGoogleSheets, 2000);
+
+            showModal('✅ Assigned!', `<div class='text-center py-2'><p class='font-bold text-slate-800 text-lg'>${player.name}</p><p class='text-slate-500 mt-1'>Added to <span class='font-bold text-blue-600'>${teamName}</span></p></div>`);
+            } catch (error) {
+                console.error(error);
+                showModal('Assignment Error', `<div class='text-center py-4'><span class='text-4xl mb-4 block'>⚠️</span><p class='font-bold text-slate-800'>${error.message || 'Failed to assign player.'}</p></div>`);
+            }
+        }
+
+        function nextAuctionPlayer() {
+            if (state.unassigned.length === 0) return;
+            state.auctionIndex++;
+            if (state.auctionIndex >= state.unassigned.length) state.auctionIndex = 0; // wrap around
+            renderAuctionPlayer();
+        }
+
+        // --- 5. Modal & Form Logic ---
+        function showModal(title, content) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerHTML = content;
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-content-box');
+
+            modal.classList.remove('hide');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-content-box');
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hide'), 300);
+        }
+
+        function showTeamModal(team) {
+            const roster = state.teams[team].map(p => `<li class="py-2 border-b border-slate-100 last:border-0">${p}</li>`).join('');
+            const html = `
+                <h4 class="font-bold text-slate-900 text-sm mb-2 uppercase tracking-wider">Current Squad</h4>
+                <ul class="text-sm text-slate-700">${roster || '<li>No players drafted yet.</li>'}</ul>
+            `;
+            showModal(`${team} Roster`, html);
+        }
+
+        // --- Name Formatting Utility ---
+        function formatName(str) {
+            if (!str) return "";
+            const parts = str.trim().split(/\s+/);
+            const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+
+            if (parts.length === 1) return capitalize(parts[0]);
+            if (parts.length === 2) return capitalize(parts[0]) + " " + capitalize(parts[1]);
+
+            const first = capitalize(parts[0]);
+            const last = capitalize(parts[parts.length - 1]);
+            let middles = "";
+            for (let i = 1; i < parts.length - 1; i++) {
+                middles += parts[i].charAt(0).toUpperCase() + " ";
+            }
+            return first + " " + middles + last;
+        }
+
+        // --- Player Hub Logic (Registration & Login) ---
+        const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMEONeN7lBP89M8kD_TgdJEWRH_QssZh2BHTwJ53x4O02lYhXCje2ioMPem1y9psVCgQ/exec';
+
+        async function assignPlayerToTeam(player, teamName) {
+            const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'assignPlayer',
+                    team: teamName,
+                    mobile: player.mobile || '',
+                    name: player.name || '',
+                    role: player.role || ''
+                })
+            });
+            return response.json();
+        }
+
+        // --- Live Data Synchronization ---
+        function populateStateFromPlayers(playersList) {
+            state.unassigned = []; // Clear current queue
+            state.allPlayers = playersList; // Store the full list
+            
+            // Reset team arrays completely
+            state.teams = {
+                'AP11': [],
+                'Cotton11': [],
+                'Balkrushna11': [],
+                'Ajinkya Classes11': [],
+                'Ankushraj11': []
+            };
+            
+            // Update Admin UI
+            const adminTotal = document.getElementById('admin-total-players');
+            if (adminTotal) adminTotal.innerText = playersList.length;
+            
+            playersList.forEach(p => {
+                // Default to Unassigned if the sheet column is empty or missing
+                const teamName = p.team ? p.team.toString().trim() : 'Unassigned';
+                
+                if (teamName === 'Unassigned' || teamName === '') {
+                    const priceFormatted = p.price ? p.price : '₹3,000';
+                    state.unassigned.push({ name: formatName(p.name), role: p.role, price: priceFormatted, mobile: p.mobile || '' });
+                } else if (state.teams[teamName] !== undefined) {
+                    const formattedName = formatName(p.name);
+                    state.teams[teamName].push(formattedName);
+                }
+            });
+
+            // Force UI update on all relevant views
+            renderTeams();
+            renderAuctionPlayer();
+            renderAuctionButtons();
+            // If admin panel is active, refresh it too
+            if (document.getElementById('view-adminpanel') && document.getElementById('view-adminpanel').classList.contains('active-view')) {
+                renderAdminPanel();
+            }
+        }
+
+        async function syncDataFromGoogleSheets() {
+            try {
+                // 1. Instant cache load (Stale-While-Revalidate)
+                const cachedData = localStorage.getItem('dpl_cached_players');
+                if (cachedData && state.allPlayers.length === 0) {
+                    populateStateFromPlayers(JSON.parse(cachedData));
+                }
+
+                // 2. Poll live backend
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.players) {
+                    // Update cache with fresh payload
+                    localStorage.setItem('dpl_cached_players', JSON.stringify(result.players));
+                    
+                    // Replace app model with live data
+                    populateStateFromPlayers(result.players);
+                }
+            } catch (error) {
+                console.error("Background sync failed:", error);
+            }
+        }
+
+        // Fire immediately on script parse + re-poll every 30 seconds
+        syncDataFromGoogleSheets();
+        setInterval(syncDataFromGoogleSheets, 30000);
+
+        function handleVillageChange(selectElement) {
+            if (selectElement.value === 'Other') {
+                showModal("Registration Blocked", "<div class='text-center py-4'><span class='text-5xl mb-4 block'>🚫</span><h3 class='font-bold text-red-600 text-xl'>Outsiders Not Allowed</h3><p class='text-slate-600 mt-2'>The DPL is strictly for residents of Deshgavhan.</p></div>");
+                selectElement.value = ""; // Reset dropdown
+            }
+        }
+
+        async function handlePlayerRegistration(e) {
+            e.preventDefault();
+            const village = document.getElementById('reg-village').value;
+            if (village !== 'Deshgavhan') {
+                showModal("Error", "<p class='text-center font-bold'>You must be from Deshgavhan to register.</p>");
+                return;
+            }
+
+            const rawName = document.getElementById('reg-name').value;
+            const name = formatName(rawName); // Automatically format the name
+            const mobile = document.getElementById('reg-mobile').value;
+            const role = document.getElementById('reg-role').value;
+            const pin = document.getElementById('reg-pin').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            // Quick local check
+            if (state.registeredPlayers.some(p => p.mobile === mobile)) {
+                showModal("Registration Failed", "<div class='text-center py-4'><span class='text-4xl mb-4 block'>⚠️</span><p class='font-bold text-slate-800'>This mobile number is already registered locally.</p></div>");
+                return;
+            }
+
+            // Update UI
+            submitBtn.innerText = "Submitting...";
+            submitBtn.disabled = true;
+
+            try {
+                // Send Request using text/plain to avoid CORS preflight, script parses textData
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ name, mobile, role, pin })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // Save to state for current session convenience
+                    state.registeredPlayers.push({ name, mobile, role, pin });
+                    state.unassigned.push({ name: name, role: role, price: '₹3,000', mobile: mobile });
+
+                    e.target.reset();
+                    switchInnerTab('hub', 'selection'); // Route back to selection after reg
+                    showModal("Success!", "<div class='text-center py-4'><span class='text-5xl mb-4 block'>✅</span><h3 class='font-bold text-emerald-600 text-xl mb-2'>Registration Complete</h3><p class='text-slate-600'>You have been added to the draft pool. Please click 'Existing Player' and use your Mobile & PIN to view your profile.</p></div>");
+                } else {
+                    showModal("Registration Error", `<div class='text-center py-4'><span class='text-4xl mb-4 block'>⚠️</span><p class='font-bold text-slate-800'>${result.message}</p></div>`);
+                }
+            } catch (error) {
+                console.error(error);
+                showModal("Network Error", "<div class='text-center py-4'><span class='text-4xl mb-4 block'>📡</span><p class='font-bold text-slate-800'>Failed to connect to the server.</p></div>");
+            } finally {
+                submitBtn.innerText = "Submit Application";
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function handlePlayerLogin(e) {
+            e.preventDefault();
+            const mobile = document.getElementById('login-mobile').value;
+            const pin = document.getElementById('login-pin').value;
+            const loginBtn = e.target.querySelector('button[type="submit"]');
+
+            loginBtn.innerText = "Authenticating...";
+            loginBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${GOOGLE_APP_SCRIPT_URL}?action=login&mobile=${encodeURIComponent(mobile)}&pin=${encodeURIComponent(pin)}`, {
+                    method: 'GET'
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    const player = result.player;
+                    state.loggedInPlayer = player;
+                    const displayName = formatName(player.name);
+
+                    // Update Dashboard DOM
+                    document.getElementById('profile-initial').innerText = displayName.charAt(0).toUpperCase();
+                    document.getElementById('profile-name').innerText = displayName;
+                    document.getElementById('profile-role').innerText = player.role;
+                    document.getElementById('profile-mobile').innerText = player.mobile;
+
+                    // Switch to Dashboard Tab
+                    switchInnerTab('hub', 'dash');
+
+                    e.target.reset();
+                    showModal("Welcome Back", `<div class='text-center py-4'><span class='text-5xl mb-4 block'>🏏</span><p class='font-bold text-slate-800 text-xl'>Logged in as ${displayName}</p></div>`);
+                } else {
+                    showModal("Login Failed", `<div class='text-center py-4'><span class='text-5xl mb-4 block'>❌</span><p class='font-bold text-red-600 text-lg'>${result.message}</p></div>`);
+                }
+            } catch (error) {
+                console.error(error);
+                showModal("Network Error", "<div class='text-center py-4'><span class='text-4xl mb-4 block'>📡</span><p class='font-bold text-slate-800'>Failed to connect to the server.</p></div>");
+            } finally {
+                loginBtn.innerText = "Login";
+                loginBtn.disabled = false;
+            }
+        }
+
+        function handlePlayerLogout() {
+            state.loggedInPlayer = null;
+            switchInnerTab('hub', 'selection'); // Route back to dual cards on logout
+            showModal("Logged Out", "<div class='text-center py-4'><span class='text-5xl mb-4 block'>🔒</span><p class='font-bold text-slate-800'>You have securely logged out.</p></div>");
+        }
+
+        // --- Admin Authentication Logic ---
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('admin-username').value;
+            const pass = document.getElementById('admin-password').value;
+
+            if (user === 'dpl' && pass === '431202') {
+                state.isAdmin = true;
+
+                // Show brief success message then redirect
+                document.getElementById('admin-login-form').classList.add('hide');
+                document.getElementById('admin-logged-in').classList.remove('hide');
+
+                // Re-render auction desk to unlock the buttons
+                renderAuctionButtons();
+
+                // Navigate to full Admin Panel after 800ms
+                setTimeout(() => {
+                    navigateTo('adminpanel');
+                    renderAdminPanel();
+                }, 800);
+            } else {
+                showModal("Access Denied", "<div class='text-center py-4'><span class='text-5xl mb-4 block'>❌</span><h3 class='font-bold text-red-600 text-xl'>Authentication Failed</h3><p class='text-slate-600 mt-2'>Invalid Admin ID or Password.</p></div>");
+            }
+            e.target.reset();
+        }
+
+        function handleAdminLogout() {
+            state.isAdmin = false;
+
+            // Revert admin login form to original state
+            document.getElementById('admin-login-form').classList.remove('hide');
+            document.getElementById('admin-logged-in').classList.add('hide');
+
+            // Re-render auction desk to remove admin buttons
+            renderAuctionButtons();
+
+            // Navigate back to admin login page
+            navigateTo('admin');
+
+            showModal("Logged Out", "<div class='text-center py-4'><span class='text-5xl mb-4 block'>🔒</span><h3 class='font-bold text-slate-800 text-xl'>Session Terminated</h3><p class='text-slate-600 mt-2'>You have been securely logged out.</p></div>");
+        }
+
+        // --- Admin Panel Render Functions ---
+        function adminNextPlayer() {
+            if (state.unassigned.length === 0) return;
+            state.auctionIndex++;
+            if (state.auctionIndex >= state.unassigned.length) state.auctionIndex = 0;
+            renderAuctionPlayer();
+            renderAdminPanel();
+        }
+
+        async function adminAssignPlayer(indexInUnassigned, teamName) {
+            const player = state.unassigned[indexInUnassigned];
+            if (!player) return;
+            try {
+                const result = await assignPlayerToTeam(player, teamName);
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'Assignment failed.');
+                }
+
+                if (state.auctionIndex >= state.unassigned.length - 1) state.auctionIndex = 0;
+                const log = document.getElementById('auction-log');
+                if (log) log.innerHTML = `<div><span class="text-blue-600 font-bold">${teamName}</span> secured ${player.name} at ${player.price}</div>` + log.innerHTML;
+
+                await syncDataFromGoogleSheets();
+                setTimeout(syncDataFromGoogleSheets, 2000);
+                renderAdminPanel();
+                showModal('✅ Assigned!', `<div class='text-center py-2'><p class='font-bold text-slate-800 text-lg'>${player.name}</p><p class='text-slate-500 mt-1'>Added to <span class='font-bold text-blue-600'>${teamName}</span></p></div>`);
+            } catch (error) {
+                console.error(error);
+                showModal('Assignment Error', `<div class='text-center py-4'><span class='text-4xl mb-4 block'>⚠️</span><p class='font-bold text-slate-800'>${error.message || 'Failed to assign player.'}</p></div>`);
+            }
+        }
+
+        function forceScoreUpdate() {
+            const t1 = document.getElementById('ls-team1').value.trim();
+            const s1 = document.getElementById('ls-score1').value.trim();
+            const t2 = document.getElementById('ls-team2').value.trim();
+            const s2 = document.getElementById('ls-score2').value.trim();
+            const batter = document.getElementById('ls-batter1').value.trim();
+            const bowler = document.getElementById('ls-bowler').value.trim();
+
+            // Push to Live Score view
+            const lsEl1 = document.getElementById('live-score-1');
+            const lsEl2 = document.getElementById('live-score-2');
+            const ovEl1 = document.getElementById('live-overs-1');
+            const liveTeam1 = document.getElementById('live-team-1');
+            const liveTeam2 = document.getElementById('live-team-2');
+            const liveBatter = document.getElementById('live-batter-1');
+            const liveBowler = document.getElementById('live-bowler');
+            const formatScoreMarkup = (scoreText) => {
+                const match = scoreText.match(/(\d+)\/?(\d*)/);
+                if (!match) return scoreText || '0/0';
+                const runs = match[1];
+                const wkts = match[2] || '0';
+                return `${runs}<span class="text-3xl md:text-4xl text-emerald-200">/${wkts}</span>`;
+            };
+
+            if (lsEl1) {
+                lsEl1.innerHTML = formatScoreMarkup(s1);
+            }
+            if (lsEl2) {
+                if (s2.match(/^\d+\/?\d*/)) {
+                    lsEl2.innerHTML = formatScoreMarkup(s2);
+                } else {
+                    lsEl2.innerText = s2 || 'Yet to bat';
+                }
+            }
+            if (ovEl1 && s1.includes('ov')) {
+                const ovMatch = s1.match(/\(([\d.]+)\s*ov\)/);
+                if (ovMatch) ovEl1.innerText = `Overs: ${ovMatch[1]} / 10`;
+            }
+            // Update team names in Live view
+            if (liveTeam1) liveTeam1.innerText = t1;
+            if (liveTeam2) liveTeam2.innerText = t2;
+
+            // Update batter / bowler display
+            if (liveBatter) liveBatter.innerText = batter || '---';
+            if (liveBowler) liveBowler.innerText = bowler || '---';
+
+            showModal('⚡ Score Updated!', `<div class='text-center py-4'><span class='text-5xl mb-4 block'>📟</span><h3 class='font-bold text-emerald-600 text-xl mb-1'>${t1} vs ${t2}</h3><p class='text-slate-600'>${t1}: ${s1} | ${t2}: ${s2}</p></div>`);
+        }
+
+        function renderAdminPanel() {
+            // Update admin player count
+            const totalEl = document.getElementById('admin-total-players');
+            if (totalEl) totalEl.innerText = state.allPlayers.length || state.unassigned.length;
+
+            // 1. On Block Card
+            const p = state.unassigned[state.auctionIndex];
+            const apName = document.getElementById('ap-player-name');
+            const apRole = document.getElementById('ap-player-role');
+            const apPrice = document.getElementById('ap-player-price');
+            if (apName && p) {
+                apName.innerText = p.name;
+                apRole.innerText = p.role;
+                apPrice.innerText = p.price;
+            } else if (apName) {
+                apName.innerText = 'Pool Empty';
+                apRole.innerText = 'All players drafted';
+                apPrice.innerText = '---';
+            }
+
+            // 2. Quick Assign Buttons
+            const assignBtns = document.getElementById('admin-assign-buttons');
+            if (assignBtns) {
+                assignBtns.innerHTML = '';
+                Object.keys(state.teams).forEach(team => {
+                    assignBtns.innerHTML += `<button onclick="adminAssignPlayer(${state.auctionIndex}, '${team}')" class="py-2.5 px-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs hover:bg-blue-600 hover:text-white transition-all truncate">${team}</button>`;
+                });
+            }
+
+            // 3. Full Unassigned Table
+            const tbody = document.getElementById('admin-unassigned-table');
+            if (tbody) {
+                if (state.unassigned.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">✅ All players have been assigned to franchises!</td></tr>';
+                } else {
+                    tbody.innerHTML = state.unassigned.map((player, idx) => `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3 px-4 text-slate-400 font-mono text-xs">${idx + 1}</td>
+                            <td class="py-3 px-4 font-bold text-slate-900">${player.name}</td>
+                            <td class="py-3 px-4">
+                                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">${player.role}</span>
+                            </td>
+                            <td class="py-3 px-4 font-bold text-emerald-600">${player.price}</td>
+                            <td class="py-3 px-4">
+                                <select onchange="if(this.value) { adminAssignPlayer(${idx}, this.value); this.value=''; }" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 cursor-pointer">
+                                    <option value="">Assign →</option>
+                                    ${Object.keys(state.teams).map(t => `<option value="${t}">${t}</option>`).join('')}
+                                </select>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            // 4. Roster Approval View
+            const rosterDiv = document.getElementById('admin-roster-view');
+            if (rosterDiv) {
+                if (Object.values(state.teams).every(t => t.length === 0)) {
+                    rosterDiv.innerHTML = '<p class="text-slate-400 text-sm col-span-full text-center py-6">No players have been assigned to any team yet.</p>';
+                } else {
+                    const teamColors = { 'AP11': 'from-pink-500 to-orange-500', 'Cotton11': 'from-cyan-500 to-blue-500', 'Balkrushna11': 'from-emerald-500 to-lime-500', 'Ajinkya Classes11': 'from-red-500 to-orange-500', 'Ankushraj11': 'from-purple-500 to-pink-500' };
+                    rosterDiv.innerHTML = Object.keys(state.teams).map(team => `
+                        <div class="clean-card p-0 overflow-hidden border-slate-100">
+                            <div class="h-1.5 w-full bg-gradient-to-r ${teamColors[team] || 'from-slate-400 to-slate-600'}"></div>
+                            <div class="p-4">
+                                <h4 class="font-black text-slate-900 uppercase tracking-tight text-sm mb-2">${team}</h4>
+                                <p class="text-xs text-slate-400 mb-3">${state.teams[team].length} player(s) drafted</p>
+                                <ul class="space-y-1.5">
+                                    ${state.teams[team].length === 0 ? '<li class="text-xs text-slate-400 italic">No players yet</li>' : state.teams[team].map(n => `<li class="flex items-center gap-2 text-sm"><span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[10px] flex items-center justify-center font-bold">✓</span>${n}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        // --- Admin Data Extraction ---
+        function downloadPlayerDataCSV() {
+            if (state.allPlayers.length === 0) {
+                showModal("No Data", "<p class='text-center mt-4'>No players fetched from the database yet. Please wait for sync.</p>");
+                return;
+            }
+
+            // Create CSV headers
+            const headers = ['Name', 'Mobile', 'Role', 'PIN', 'Team', 'Price'];
+            let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+
+            state.allPlayers.forEach(p => {
+                const row = [
+                    `"${p.name || ''}"`, 
+                    `"${p.mobile || ''}"`, 
+                    `"${p.role || ''}"`, 
+                    `"${p.pin || ''}"`, 
+                    `"${p.team || ''}"`, 
+                    `"${p.price || '₹3,000'}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // Trigger download wrapper
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "dpl_registered_players.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- 6. Live Score Simulation ---
+        let runs = 112;
+        setInterval(() => {
+            if (document.getElementById('view-live').classList.contains('active-view')) {
+                runs += Math.floor(Math.random() * 3); // random 0,1,2 runs
+                document.getElementById('live-score-1').innerHTML = `${runs}<span class="text-3xl md:text-4xl text-emerald-200">/4</span>`;
+            }
+        }, 5000);
+
+        // --- 7. Chart.js Initialization ---
+        function renderChart() {
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            Chart.defaults.font.family = "'Outfit', sans-serif";
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Season 1', 'Season 2', 'Season 3 (Upcoming)'],
+                    datasets: [
+                        {
+                            label: 'Total Runs',
+                            data: [687, 717, 0],
+                            backgroundColor: '#2563eb',
+                            borderRadius: 4,
+                            yAxisID: 'y' // Left Axis
+                        },
+                        {
+                            label: 'Total Wickets',
+                            data: [112, 95, 0], // Updated Wickets Data
+                            backgroundColor: '#10b981',
+                            borderRadius: 4,
+                            yAxisID: 'y1' // Right Axis
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            min: 0,
+                            max: 1000,
+                            title: { display: true, text: 'Total Runs', color: '#2563eb', font: { weight: 'bold' } },
+                            grid: { color: '#f1f5f9' },
+                            border: { display: false }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 0,
+                            max: 260,
+                            title: { display: true, text: 'Total Wickets', color: '#10b981', font: { weight: 'bold' } },
+                            grid: { drawOnChartArea: false }, // Background grid overlapping rokne ke liye
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+                    }
+                }
+            });
+            state.chartInitialized = true;
+        }
+    </script>
+</body>
+
+</html>
