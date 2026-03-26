@@ -2192,7 +2192,7 @@
                 const teamName = p.team ? p.team.toString().trim() : 'Unassigned';
                 
                 if (isUnassignedTeam(teamName)) {
-                    const priceFormatted = p.price ? p.price : '₹3,000';
+                    const priceFormatted = p.price ? p.price : '$10';
                     state.unassigned.push({ name: formatName(p.name), role: p.role, price: priceFormatted, mobile: p.mobile || '', team: 'Unassigned' });
                 } else if (state.teams[teamName] !== undefined) {
                     const formattedName = formatName(p.name);
@@ -2293,7 +2293,7 @@
                 if (result.status === 'success') {
                     // Save to state for current session convenience
                     state.registeredPlayers.push({ name, mobile, role, pin });
-                    state.unassigned.push({ name: name, role: role, price: '₹3,000', mobile: mobile, team: 'Unassigned' });
+                    state.unassigned.push({ name: name, role: role, price: '$10', mobile: mobile, team: 'Unassigned' });
 
                     e.target.reset();
                     switchInnerTab('hub', 'selection'); // Route back to selection after reg
@@ -2659,7 +2659,7 @@
                     `"${p.role || ''}"`, 
                     `"${p.pin || ''}"`, 
                     `"${p.team || ''}"`, 
-                    `"${p.price || '₹3,000'}"`
+                    `"${p.price || '$10'}"`
                 ];
                 csvContent += row.join(",") + "\n";
             });
