@@ -665,7 +665,7 @@
                             class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center lightning-hover transition-all">
                             <div class="text-3xl mb-2 drop-shadow-md">👑</div>
                             <h3 class="font-bold text-amber-400 text-xs tracking-widest uppercase">Top Player (AI)</h3>
-                            <p class="text-xl font-black italic text-white mt-1 transform -skew-x-6">Aditya</p>
+                            <p class="text-xl font-black italic text-white mt-1 transform -skew-x-6">Rahul D.</p>
                         </div>
                         <div
                             class="bg-[#0a192f] rounded-xl p-4 border border-[#00e5ff]/30 text-center text-white relative lightning-hover transition-all shadow-[inset_0_0_20px_rgba(0,229,255,0.05)]">
@@ -1062,6 +1062,9 @@
                                         <p id="profile-role"
                                             class="text-xs sm:text-sm md:text-base font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[#10b981] to-[#3b82f6] drop-shadow-sm transform -skew-x-6 uppercase tracking-widest">
                                             Role</p>
+                                        <p id="profile-welcome"
+                                            class="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.25em] text-emerald-200 shadow-[0_12px_35px_rgba(16,185,129,0.18)]">
+                                            Welcome In</p>
                                     </div>
                                 </div>
                             </div>
@@ -1083,10 +1086,10 @@
                                     class="bg-amber-50 p-5 rounded-2xl border border-amber-100 shadow-sm sm:col-span-2 md:col-span-1 text-center md:text-left">
                                     <p class="text-xs font-bold text-amber-600/70 uppercase tracking-widest mb-1">Draft
                                         Status</p>
-                                    <p
+                                    <p id="profile-status"
                                         class="font-bold text-amber-700 text-lg flex items-center justify-center md:justify-start gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                        Awaiting Bid</p>
+                                        <span id="profile-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <span id="profile-status-text">Awaiting Bid</span></p>
                                 </div>
                             </div>
                         </div>
@@ -1137,9 +1140,9 @@
                 <div class="border-t border-slate-700 mt-6 sm:mt-8 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
                     <div>
                         <p class="text-slate-400 uppercase tracking-widest text-xs mb-2">Current Batters</p>
-                        <div class="flex justify-between font-bold"><span id="live-batter-1" class="text-white">Aditya *</span> <span
+                        <div class="flex justify-between font-bold"><span id="live-batter-1" class="text-white">Rahul D. *</span> <span
                                 class="text-amber-400">42 (18)</span></div>
-                        <div class="flex justify-between font-bold mt-1"><span class="text-slate-300">Avishkar</span>
+                        <div class="flex justify-between font-bold mt-1"><span class="text-slate-300">Amit S.</span>
                             <span class="text-amber-400">12 (8)</span></div>
                     </div>
                     <div class="border-t border-slate-800 pt-4 sm:border-0 sm:pt-0">
@@ -1454,11 +1457,23 @@
                     </div>
                     <!-- Full Unassigned Table -->
                     <div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Full Unassigned Pool (from Google Sheets)</p>
+                        <div class="flex flex-col gap-3 mb-3 md:flex-row md:items-center md:justify-between">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Full Unassigned Pool (from Google Sheets)</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <label class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600">
+                                    <input id="admin-select-all-unassigned-checkbox" type="checkbox" onchange="toggleSelectAllUnassigned(this.checked)" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                    Select all
+                                </label>
+                                <button id="admin-delete-selected-btn" onclick="confirmBulkDeleteUnassigned()" class="px-4 py-2 rounded-full bg-red-50 border border-red-200 text-red-700 text-xs font-black uppercase tracking-wide hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Delete Selected Permanently
+                                </button>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto rounded-xl border border-slate-100">
-                            <table class="w-full text-sm text-left min-w-[480px]">
+                            <table class="w-full text-sm text-left min-w-[620px]">
                                 <thead class="bg-slate-50 text-xs uppercase text-slate-500 border-b border-slate-200">
                                     <tr>
+                                        <th class="py-3 px-4 text-center">Pick</th>
                                         <th class="py-3 px-4">#</th>
                                         <th class="py-3 px-4">Player Name</th>
                                         <th class="py-3 px-4">Role</th>
@@ -1467,7 +1482,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="admin-unassigned-table" class="divide-y divide-slate-100 text-slate-700">
-                                    <tr><td colspan="5" class="py-6 text-center text-slate-400">Syncing from Google Sheets...</td></tr>
+                                    <tr><td colspan="6" class="py-6 text-center text-slate-400">Syncing from Google Sheets...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1504,7 +1519,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Current Batter *</label>
-                            <input type="text" id="ls-batter1" value="Aditya *" class="clean-input bg-slate-50 text-sm" placeholder="Opening batter">
+                            <input type="text" id="ls-batter1" value="Rahul D. *" class="clean-input bg-slate-50 text-sm" placeholder="Opening batter">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Current Bowler</label>
@@ -1597,6 +1612,7 @@
             registeredPlayers: [], // Stores new registrations during this session
             allPlayers: [], // Stores the full database list for admin data extract
             loggedInPlayer: null,
+            selectedUnassignedPlayers: [],
             auctionIndex: 0,
             chartInitialized: false,
             isAdmin: false, // Tracks if user has unlocked the admin panel
@@ -1605,7 +1621,7 @@
                 score1: '112/4 (8.2 ov)',
                 team2: 'Cotton11',
                 score2: 'Yet to bat',
-                batter: 'Aditya *',
+                batter: 'Rahul D. *',
                 bowler: 'Jasprit'
             }
         };
@@ -1942,6 +1958,15 @@
             return first + " " + middles + last;
         }
 
+        function escapeHtml(value) {
+            return (value || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // --- Player Hub Logic (Registration & Login) ---
         const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAbavuqyEW635Wu3Q193eMlpSvCUfstgQC_138bQLnfefaInalglXkQunVTdo2pb2F2A/exec';
 
@@ -2003,6 +2028,147 @@
             });
         }
 
+        function getPlayerSelectionKey(player) {
+            return (player.mobile || `${formatName(player.name)}-${player.role || 'player'}`).toString();
+        }
+
+        function getLoggedInPlayerRecord() {
+            if (!state.loggedInPlayer) return null;
+            const mobile = (state.loggedInPlayer.mobile || '').toString();
+            return state.allPlayers.find(player => (player.mobile || '').toString() === mobile) || state.loggedInPlayer;
+        }
+
+        function updatePlayerDashboard(player) {
+            if (!player) return;
+
+            const displayName = formatName(player.name);
+            const teamName = (player.team || '').toString().trim();
+            const assigned = !isUnassignedTeam(teamName);
+
+            document.getElementById('profile-initial').innerText = displayName.charAt(0).toUpperCase();
+            document.getElementById('profile-name').innerText = displayName;
+            document.getElementById('profile-role').innerText = player.role || 'Player';
+            document.getElementById('profile-mobile').innerText = player.mobile || '---';
+
+            const welcomeEl = document.getElementById('profile-welcome');
+            const statusEl = document.getElementById('profile-status');
+            const statusDotEl = document.getElementById('profile-status-dot');
+            const statusTextEl = document.getElementById('profile-status-text');
+
+            if (assigned) {
+                welcomeEl.innerHTML = `Welcome In <span class="text-white/80">|</span> <span class="text-white">${escapeHtml(teamName)}</span>`;
+                welcomeEl.className = 'mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-400/25 via-lime-300/20 to-cyan-300/20 px-4 py-1.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.25em] text-emerald-100 shadow-[0_14px_40px_rgba(16,185,129,0.25)] backdrop-blur-sm';
+                statusEl.className = 'font-bold text-emerald-600 text-lg flex items-center justify-center md:justify-start gap-2';
+                statusDotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(34,197,94,0.9)]';
+                statusTextEl.innerText = teamName;
+            } else {
+                welcomeEl.innerText = 'Welcome In';
+                welcomeEl.className = 'mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.25em] text-emerald-200 shadow-[0_12px_35px_rgba(16,185,129,0.18)]';
+                statusEl.className = 'font-bold text-amber-700 text-lg flex items-center justify-center md:justify-start gap-2';
+                statusDotEl.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                statusTextEl.innerText = 'Awaiting Bid';
+            }
+        }
+
+        function syncLoggedInPlayerDashboard() {
+            if (!state.loggedInPlayer) return;
+            const syncedPlayer = getLoggedInPlayerRecord();
+            if (syncedPlayer) {
+                state.loggedInPlayer = { ...state.loggedInPlayer, ...syncedPlayer };
+                updatePlayerDashboard(state.loggedInPlayer);
+            }
+        }
+
+        function toggleUnassignedSelection(playerKey, checked) {
+            if (checked) {
+                if (!state.selectedUnassignedPlayers.includes(playerKey)) {
+                    state.selectedUnassignedPlayers.push(playerKey);
+                }
+            } else {
+                state.selectedUnassignedPlayers = state.selectedUnassignedPlayers.filter(key => key !== playerKey);
+            }
+            updateUnassignedSelectionUi();
+        }
+
+        function toggleSelectAllUnassigned(checked) {
+            state.selectedUnassignedPlayers = checked ? state.unassigned.map(getPlayerSelectionKey) : [];
+            renderAdminPanel();
+        }
+
+        function updateUnassignedSelectionUi() {
+            const deleteBtn = document.getElementById('admin-delete-selected-btn');
+            const selectAll = document.getElementById('admin-select-all-unassigned-checkbox');
+            const selectedCount = state.selectedUnassignedPlayers.length;
+            const totalCount = state.unassigned.length;
+
+            if (deleteBtn) {
+                deleteBtn.disabled = selectedCount === 0;
+                deleteBtn.innerText = selectedCount > 0 ? `Delete Selected Permanently (${selectedCount})` : 'Delete Selected Permanently';
+            }
+
+            if (selectAll) {
+                selectAll.checked = totalCount > 0 && selectedCount === totalCount;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < totalCount;
+            }
+        }
+
+        function getSelectedUnassignedPlayers() {
+            const selected = new Set(state.selectedUnassignedPlayers);
+            return state.unassigned.filter(player => selected.has(getPlayerSelectionKey(player)));
+        }
+
+        function confirmBulkDeleteUnassigned() {
+            const selectedPlayers = getSelectedUnassignedPlayers();
+            if (selectedPlayers.length === 0) return;
+
+            const preview = selectedPlayers
+                .slice(0, 4)
+                .map(player => `<li class="text-sm text-slate-700 font-semibold">${escapeHtml(formatName(player.name))}</li>`)
+                .join('');
+            const extraCount = selectedPlayers.length - Math.min(selectedPlayers.length, 4);
+
+            showModal('Delete Selected Players', `
+                <div class="space-y-4">
+                    <p class="text-center text-sm text-slate-600">This permanent delete is enabled only for players in the unassigned pool.</p>
+                    <div class="rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+                        <p class="font-black text-red-700 text-sm uppercase tracking-wide">${selectedPlayers.length} player(s) will be removed forever</p>
+                        <ul class="mt-3 space-y-1">${preview}${extraCount > 0 ? `<li class="text-xs text-slate-500">+${extraCount} more</li>` : ''}</ul>
+                    </div>
+                    <button onclick="bulkDeleteSelectedUnassigned()" class="w-full px-4 py-3 rounded-xl bg-red-600 text-white text-sm font-black hover:bg-red-700 transition-colors">
+                        Confirm Permanent Delete
+                    </button>
+                </div>
+            `);
+        }
+
+        async function bulkDeleteSelectedUnassigned() {
+            const selectedPlayers = getSelectedUnassignedPlayers();
+            if (selectedPlayers.length === 0) {
+                closeModal();
+                return;
+            }
+
+            closeModal();
+
+            try {
+                for (const player of selectedPlayers) {
+                    const result = await removePlayerFromTeam(player, 'delete');
+                    if (result.status !== 'success') {
+                        throw new Error(result.message || `Failed to delete ${formatName(player.name)}.`);
+                    }
+                }
+
+                state.selectedUnassignedPlayers = [];
+                await syncDataFromGoogleSheets();
+                setTimeout(syncDataFromGoogleSheets, 2000);
+                renderAdminPanel();
+                showModal('Players Deleted', `<div class='text-center py-2'><p class='font-bold text-slate-800 text-lg'>${selectedPlayers.length} player(s) deleted permanently.</p><p class='text-slate-500 mt-1'>Removed from the unassigned list and Google Sheets.</p></div>`);
+            } catch (error) {
+                console.error(error);
+                showModal('Removal Error', `<div class='text-center py-4'><span class='text-4xl mb-4 block'>⚠️</span><p class='font-bold text-slate-800'>${error.message || 'Failed to update players.'}</p></div>`);
+            }
+        }
+
         // --- Live Data Synchronization ---
         function populateStateFromPlayers(playersList) {
             state.unassigned = []; // Clear current queue
@@ -2027,17 +2193,21 @@
                 
                 if (isUnassignedTeam(teamName)) {
                     const priceFormatted = p.price ? p.price : '₹3,000';
-                    state.unassigned.push({ name: formatName(p.name), role: p.role, price: priceFormatted, mobile: p.mobile || '' });
+                    state.unassigned.push({ name: formatName(p.name), role: p.role, price: priceFormatted, mobile: p.mobile || '', team: 'Unassigned' });
                 } else if (state.teams[teamName] !== undefined) {
                     const formattedName = formatName(p.name);
                     state.teams[teamName].push(formattedName);
                 }
             });
 
+            const availableKeys = new Set(state.unassigned.map(getPlayerSelectionKey));
+            state.selectedUnassignedPlayers = state.selectedUnassignedPlayers.filter(key => availableKeys.has(key));
+
             // Force UI update on all relevant views
             renderTeams();
             renderAuctionPlayer();
             renderAuctionButtons();
+            syncLoggedInPlayerDashboard();
             // If admin panel is active, refresh it too
             if (document.getElementById('view-adminpanel') && document.getElementById('view-adminpanel').classList.contains('active-view')) {
                 renderAdminPanel();
@@ -2123,7 +2293,7 @@
                 if (result.status === 'success') {
                     // Save to state for current session convenience
                     state.registeredPlayers.push({ name, mobile, role, pin });
-                    state.unassigned.push({ name: name, role: role, price: '₹3,000', mobile: mobile });
+                    state.unassigned.push({ name: name, role: role, price: '₹3,000', mobile: mobile, team: 'Unassigned' });
 
                     e.target.reset();
                     switchInnerTab('hub', 'selection'); // Route back to selection after reg
@@ -2158,18 +2328,15 @@
                 if (result.status === 'success') {
                     const player = result.player;
                     state.loggedInPlayer = player;
-                    const displayName = formatName(player.name);
-
-                    // Update Dashboard DOM
-                    document.getElementById('profile-initial').innerText = displayName.charAt(0).toUpperCase();
-                    document.getElementById('profile-name').innerText = displayName;
-                    document.getElementById('profile-role').innerText = player.role;
-                    document.getElementById('profile-mobile').innerText = player.mobile;
+                    const syncedPlayer = getLoggedInPlayerRecord();
+                    if (syncedPlayer) state.loggedInPlayer = { ...player, ...syncedPlayer };
+                    updatePlayerDashboard(state.loggedInPlayer);
 
                     // Switch to Dashboard Tab
                     switchInnerTab('hub', 'dash');
 
                     e.target.reset();
+                    const displayName = formatName(player.name);
                     showModal("Welcome Back", `<div class='text-center py-4'><span class='text-5xl mb-4 block'>🏏</span><p class='font-bold text-slate-800 text-xl'>Logged in as ${displayName}</p></div>`);
                 } else {
                     showModal("Login Failed", `<div class='text-center py-4'><span class='text-5xl mb-4 block'>❌</span><p class='font-bold text-red-600 text-lg'>${result.message}</p></div>`);
@@ -2376,10 +2543,13 @@
             const tbody = document.getElementById('admin-unassigned-table');
             if (tbody) {
                 if (state.unassigned.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">✅ All players have been assigned to franchises!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-400 font-medium">✅ All players have been assigned to franchises!</td></tr>';
                 } else {
                     tbody.innerHTML = state.unassigned.map((player, idx) => `
                         <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3 px-4 text-center">
+                                <input type="checkbox" onchange="toggleUnassignedSelection('${getPlayerSelectionKey(player).replace(/'/g, "\\'")}', this.checked)" ${state.selectedUnassignedPlayers.includes(getPlayerSelectionKey(player)) ? 'checked' : ''} class="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500 cursor-pointer">
+                            </td>
                             <td class="py-3 px-4 text-slate-400 font-mono text-xs">${idx + 1}</td>
                             <td class="py-3 px-4 font-bold text-slate-900">${player.name}</td>
                             <td class="py-3 px-4">
@@ -2396,6 +2566,8 @@
                     `).join('');
                 }
             }
+
+            updateUnassignedSelectionUi();
 
             // 4. Roster Approval View
             const rosterDiv = document.getElementById('admin-roster-view');
